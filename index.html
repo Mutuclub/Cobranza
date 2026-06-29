@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0E4D64">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Cobranza en Campo — Arts Nova MutuClub</title>
+<style>
+  :root{
+    --azul:#0E4D64; --azul-2:#0A3A4D; --azul-soft:#E4EEF1;
+    --verde:#1FA37A; --verde-2:#178A66; --verde-soft:#E3F3EC;
+    --ambar:#C8861A; --ambar-soft:#FBF0DC;
+    --rojo:#B23A3A; --rojo-soft:#FBE9E9;
+    --azulinfo:#2D6FB8; --azulinfo-soft:#E6EFF8;
+    --bg:#EFF2F3; --surface:#FFFFFF; --ink:#13242B; --muted:#5C6B71;
+    --line:#DCE3E5; --line-2:#C7D1D4;
+    --radius:14px; --radius-sm:10px;
+    --shadow:0 1px 2px rgba(16,40,50,.06), 0 4px 16px rgba(16,40,50,.06);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg); color:var(--ink);
+    font-size:16px; line-height:1.45; overscroll-behavior-y:none;
+  }
+  button{font-family:inherit; cursor:pointer}
+  input,select,textarea{font-family:inherit; font-size:16px}
+  .hidden{display:none !important}
+
+  /* ---- Layout base ---- */
+  .screen{min-height:100dvh; display:flex; flex-direction:column}
+  .topbar{
+    background:var(--azul); color:#fff; padding:14px 16px;
+    display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:20;
+    padding-top:calc(14px + env(safe-area-inset-top,0px));
+  }
+  .topbar h1{font-size:17px; margin:0; font-weight:600; letter-spacing:.2px; flex:1}
+  .topbar .sub{font-size:12px; opacity:.85; font-weight:400; display:block}
+  .iconbtn{
+    background:rgba(255,255,255,.14); border:none; color:#fff; width:40px; height:40px;
+    border-radius:10px; font-size:18px; display:grid; place-items:center
+  }
+  .content{flex:1; padding:16px; padding-bottom:calc(96px + var(--safe-b)); max-width:560px; width:100%; margin:0 auto}
+
+  /* ---- Componentes ---- */
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow)}
+  .pad{padding:16px}
+  .btn{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; min-height:54px; border:none; border-radius:var(--radius-sm);
+    font-size:16px; font-weight:600; background:var(--azul); color:#fff;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn.green{background:var(--verde)}
+  .btn.ghost{background:#fff; color:var(--azul); border:1.5px solid var(--line-2)}
+  .btn.amber{background:var(--ambar)}
+  .btn.sm{min-height:44px; font-size:14px; font-weight:600; padding:0 14px; width:auto}
+  .btn[disabled]{opacity:.5}
+  .field{margin-bottom:14px}
+  .field label{display:block; font-size:13px; font-weight:600; color:var(--muted); margin-bottom:6px}
+  .field input,.field select,.field textarea{
+    width:100%; padding:13px 14px; border:1.5px solid var(--line-2); border-radius:var(--radius-sm);
+    background:#fff; color:var(--ink); outline:none
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--azul)}
+  .row{display:flex; gap:10px}
+  .row>*{flex:1}
+  .muted{color:var(--muted)}
+  .pill{
+    display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700;
+    padding:3px 9px; border-radius:999px; letter-spacing:.2px
+  }
+  .pill.pend{background:var(--ambar-soft); color:#8a5d0f}
+  .pill.sync{background:var(--azulinfo-soft); color:#1d4f86}
+  .pill.valid{background:var(--verde-soft); color:#10684c}
+  .pill.alert{background:var(--rojo-soft); color:#8c2a2a}
+  .pill.dot::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+
+  /* ---- Login ---- */
+  .login{min-height:100dvh; display:flex; flex-direction:column; justify-content:center; padding:24px; background:linear-gradient(170deg,#0E4D64,#0A3A4D)}
+  .login .brand{text-align:center; color:#fff; margin-bottom:26px}
+  .login .logo{width:64px;height:64px;border-radius:18px;background:#fff;display:grid;place-items:center;margin:0 auto 14px;font-weight:800;color:var(--azul);font-size:24px}
+  .login .brand h2{margin:0;font-size:21px;font-weight:600}
+  .login .brand p{margin:4px 0 0;font-size:13px;opacity:.8}
+  .login .panel{background:#fff;border-radius:18px;padding:22px;max-width:380px;width:100%;margin:0 auto;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+
+  /* ---- Lista clientes ---- */
+  .search{position:relative; margin-bottom:14px}
+  .search input{width:100%; padding:13px 14px 13px 42px; border:1.5px solid var(--line-2); border-radius:var(--radius-sm); background:#fff}
+  .search::before{content:"🔍"; position:absolute; left:13px; top:50%; transform:translateY(-50%); opacity:.5; font-size:15px}
+  .clientcard{display:flex; align-items:center; gap:12px; padding:13px 14px; border-bottom:1px solid var(--line)}
+  .clientcard:last-child{border-bottom:none}
+  .avatar{width:44px;height:44px;border-radius:12px;background:var(--azul-soft);color:var(--azul);display:grid;place-items:center;font-weight:700;font-size:16px;flex-shrink:0}
+  .clientcard .info{flex:1; min-width:0}
+  .clientcard .nm{font-weight:600; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .clientcard .meta{font-size:12.5px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .clientcard .saldo{text-align:right; flex-shrink:0}
+  .clientcard .saldo b{display:block; font-size:15px}
+  .chev{color:var(--line-2); font-size:20px; flex-shrink:0}
+
+  /* ---- Detalle ---- */
+  .kv{display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-bottom:1px solid var(--line); font-size:14.5px}
+  .kv:last-child{border-bottom:none}
+  .kv span{color:var(--muted)}
+  .kv b{text-align:right; font-weight:600}
+  .sectiontitle{font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); margin:22px 4px 8px}
+  .payrow{display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid var(--line)}
+  .payrow:last-child{border-bottom:none}
+  .payrow .pf{font-size:12px; color:var(--muted)}
+
+  /* ---- Firma ---- */
+  .sigwrap{border:1.5px dashed var(--line-2); border-radius:var(--radius-sm); background:#fff; position:relative}
+  #sigCanvas{display:block; width:100%; height:150px; touch-action:none; border-radius:var(--radius-sm)}
+  .sigclear{position:absolute; top:8px; right:8px; background:#fff; border:1px solid var(--line-2); border-radius:8px; padding:4px 10px; font-size:12px; font-weight:600; color:var(--muted)}
+  .sighint{position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); text-align:center; color:var(--line-2); font-size:13px; pointer-events:none}
+
+  /* ---- Ticket preview ---- */
+  .ticket{font-family:"Courier New",monospace; background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:18px; max-width:340px; margin:0 auto; font-size:13px; line-height:1.5}
+  .ticket .center{text-align:center}
+  .ticket .b{font-weight:700}
+  .ticket hr{border:none; border-top:1px dashed #aaa; margin:8px 0}
+  .ticket .lineit{display:flex; justify-content:space-between}
+  .ticket .qr{display:flex; justify-content:center; margin:10px 0}
+  .successbar{background:var(--verde-soft); color:#0f6e52; border-radius:var(--radius); padding:14px 16px; display:flex; align-items:center; gap:10px; font-weight:600; margin-bottom:16px}
+
+  /* ---- Barra inferior fija ---- */
+  .bottombar{position:fixed; left:0; right:0; bottom:0; background:#fff; border-top:1px solid var(--line); padding:12px 16px calc(12px + var(--safe-b)); display:flex; gap:10px; z-index:30; max-width:560px; margin:0 auto}
+  .bottombar .btn{margin:0}
+
+  /* ---- Sync banner ---- */
+  .syncbar{display:flex; align-items:center; gap:10px; justify-content:space-between; background:var(--azul-soft); border:1px solid #cfe0e6; border-radius:var(--radius-sm); padding:11px 14px; margin-bottom:14px; font-size:13.5px}
+  .syncbar .left{display:flex; align-items:center; gap:9px; font-weight:600; color:var(--azul-2)}
+
+  /* ---- Toast ---- */
+  #toast{position:fixed; left:50%; bottom:calc(86px + var(--safe-b)); transform:translateX(-50%) translateY(20px); background:#13242B; color:#fff; padding:11px 18px; border-radius:999px; font-size:14px; font-weight:600; opacity:0; transition:.25s; z-index:100; pointer-events:none; max-width:90%; text-align:center}
+  #toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+  /* ---- Modal ---- */
+  .modal{position:fixed; inset:0; background:rgba(10,25,30,.5); display:flex; align-items:flex-end; justify-content:center; z-index:90; padding:0}
+  .modal .sheet{background:#fff; width:100%; max-width:560px; border-radius:18px 18px 0 0; padding:20px 18px calc(20px + var(--safe-b)); animation:up .22s ease}
+  @keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .modal h3{margin:0 0 4px; font-size:18px}
+  @media (prefers-reduced-motion: reduce){.modal .sheet{animation:none}}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="loginScreen" class="login">
+  <div class="brand">
+    <div class="logo">AN</div>
+    <h2>Cobranza en Campo</h2>
+    <p>Arts Nova MutuClub</p>
+  </div>
+  <div class="panel">
+    <div class="field">
+      <label>Usuario</label>
+      <input id="liUser" autocomplete="username" autocapitalize="none" placeholder="usuario">
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input id="liPass" type="password" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <button class="btn" onclick="App.login()">Entrar</button>
+    <p id="liErr" class="muted" style="text-align:center;font-size:13px;color:var(--rojo);margin:12px 0 0;min-height:18px"></p>
+    <p class="muted" style="text-align:center;font-size:12px;margin-top:14px;line-height:1.6">
+      Demo: <b>cobrador</b> / <b>1234</b><br>Admin: <b>admin</b> / <b>admin</b>
+    </p>
+  </div>
+</div>
+
+<!-- ============ HOME (lista clientes) ============ -->
+<div id="homeScreen" class="screen hidden">
+  <div class="topbar">
+    <div style="flex:1">
+      <h1 style="margin:0">Mis clientes <span class="sub" id="homeUserName"></span></h1>
+    </div>
+    <button class="iconbtn" onclick="App.openSettings()" aria-label="Ajustes">⚙️</button>
+    <button class="iconbtn" onclick="App.logout()" aria-label="Salir">⎋</button>
+  </div>
+  <div class="content">
+    <div class="syncbar" id="syncBar">
+      <div class="left"><span id="syncIcon">☁️</span><span id="syncTxt">Todo sincronizado</span></div>
+      <button class="btn sm" id="syncBtn" onclick="App.sync()">Sincronizar</button>
+    </div>
+    <div class="search">
+      <input id="searchInput" placeholder="Buscar por nombre, teléfono, placas o póliza" oninput="App.renderClients()">
+    </div>
+    <div class="card" id="clientList"></div>
+  </div>
+</div>
+
+<!-- ============ DETALLE CLIENTE ============ -->
+<div id="clientScreen" class="screen hidden">
+  <div class="topbar">
+    <button class="iconbtn" onclick="App.go('home')" aria-label="Atrás">←</button>
+    <h1 id="cdName">Cliente</h1>
+  </div>
+  <div class="content" id="clientDetail"></div>
+  <div class="bottombar">
+    <button class="btn green" onclick="App.openPago()">＋ Registrar pago</button>
+  </div>
+</div>
+
+<!-- ============ REGISTRAR PAGO ============ -->
+<div id="pagoScreen" class="screen hidden">
+  <div class="topbar">
+    <button class="iconbtn" onclick="App.go('client')" aria-label="Atrás">←</button>
+    <h1>Registrar pago<span class="sub" id="pagoCliente"></span></h1>
+  </div>
+  <div class="content">
+    <div class="card pad">
+      <div class="row">
+        <div class="field">
+          <label>Importe pagado</label>
+          <input id="pImporte" type="number" inputmode="decimal" placeholder="0.00">
+        </div>
+        <div class="field">
+          <label>Método</label>
+          <select id="pMetodo">
+            <option value="Efectivo">Efectivo</option>
+            <option value="Tarjeta">Tarjeta</option>
+            <option value="Transferencia">Transferencia</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Próximo vencimiento</label>
+        <input id="pProxVenc" type="date">
+      </div>
+      <div class="field">
+        <label>Observaciones <span class="muted" style="font-weight:400">(opcional)</span></label>
+        <textarea id="pObs" rows="2" placeholder="Notas del cobro…"></textarea>
+      </div>
+      <div class="field">
+        <label>Firma del cobrador</label>
+        <div class="sigwrap">
+          <canvas id="sigCanvas"></canvas>
+          <span class="sighint" id="sigHint">Firma aquí con el dedo</span>
+          <button class="sigclear" onclick="App.clearSig()">Borrar</button>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Ubicación GPS</label>
+        <div class="row" style="align-items:center">
+          <button class="btn ghost sm" style="flex:0 0 auto" onclick="App.captureGPS()">📍 Capturar ubicación</button>
+          <span id="gpsTxt" class="muted" style="font-size:13px">Sin capturar</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="bottombar">
+    <button class="btn green" onclick="App.savePago()">Guardar y generar ticket</button>
+  </div>
+</div>
+
+<!-- ============ TICKET ============ -->
+<div id="ticketScreen" class="screen hidden">
+  <div class="topbar">
+    <button class="iconbtn" onclick="App.go('client')" aria-label="Atrás">←</button>
+    <h1>Comprobante</h1>
+  </div>
+  <div class="content">
+    <div class="successbar">✓ Pago registrado <span class="pill pend dot" style="margin-left:auto">Pendiente de sincronizar</span></div>
+    <div id="ticketBox"></div>
+    <div style="height:14px"></div>
+    <div class="row" style="margin-bottom:10px">
+      <button class="btn green" onclick="App.shareWhatsApp()">💬 WhatsApp</button>
+      <button class="btn" onclick="App.downloadPDF()">⬇ PDF</button>
+    </div>
+    <button class="btn amber" onclick="App.printTicket()">🖨 Imprimir ticket (Bluetooth)</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="App.go('home')">Terminar</button>
+  </div>
+</div>
+
+<!-- ============ AJUSTES ============ -->
+<div id="settingsScreen" class="screen hidden">
+  <div class="topbar">
+    <button class="iconbtn" onclick="App.go('home')" aria-label="Atrás">←</button>
+    <h1>Ajustes</h1>
+  </div>
+  <div class="content" id="settingsBody"></div>
+</div>
+
+<div id="toast"></div>
+<div id="modalRoot"></div>
+
+<!-- Librerías -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+/* ============================================================
+   COBRANZA EN CAMPO — Arts Nova MutuClub
+   App del cobrador, local-first (offline) con capa de sync
+   abstraída para enchufar Firebase / Apps Script después.
+   ============================================================ */
+
+/* ---------- Config de la empresa (editable en Ajustes) ---------- */
+const EMPRESA_DEFAULT = {
+  nombre:"ARTS NOVA MUTUCLUB",
+  direccion:"Guadalajara, Jalisco",
+  tels:"33 0000 0000",
+  rfc:"XAXX010101000",
+  redes:"facebook.com/artsnova",
+  mensaje:"Gracias por su pago. Conserve este comprobante.",
+  aviso:"Este comprobante es informativo. Sujeto a validación en oficina central."
+};
+
+/* ---------- Utilidades ---------- */
+const U = {
+  async sha256(str){
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+  },
+  money(n){ return '$'+Number(n||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}); },
+  fechaCorta(d){ return new Date(d).toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'}); },
+  fechaHora(d){ return new Date(d).toLocaleString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); },
+  iniciales(nombre){ return (nombre||'').split(' ').filter(Boolean).slice(0,2).map(s=>s[0]).join('').toUpperCase(); },
+  uid(){ return 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+};
+
+/* ---------- Almacén local (localStorage + LZString) ----------
+   Estructura espejo de las colecciones de Firestore para
+   migrar sin reescribir la app.                               */
+const DB = {
+  KEY:'cobranza_db_v1',
+  data:null,
+  load(){
+    try{
+      const raw = localStorage.getItem(this.KEY);
+      this.data = raw ? JSON.parse(LZString.decompressFromUTF16(raw)) : null;
+    }catch(e){ this.data = null; }
+    if(!this.data) this.data = this._seed();
+    return this.data;
+  },
+  save(){
+    localStorage.setItem(this.KEY, LZString.compressToUTF16(JSON.stringify(this.data)));
+  },
+  reset(){ localStorage.removeItem(this.KEY); this.data = this._seed(); this.save(); },
+  _seed(){
+    /* Hashes precalculados: '1234' y 'admin' */
+    return {
+      empresa: {...EMPRESA_DEFAULT},
+      usuarios: [
+        {id:'u_cob', usuario:'cobrador', rol:'cobrador', nombre:'Juan Pérez', prefijo:'C01', activo:true,
+         hash:'03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'}, /* 1234 */
+        {id:'u_adm', usuario:'admin', rol:'admin', nombre:'Administrador', prefijo:'ADM', activo:true,
+         hash:'8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'}  /* admin */
+      ],
+      clientes: [
+        {id:'c1', poliza:'POL-2024-1187', nombre:'María González Ruiz', telefono:'3312345678',
+         direccion:'Av. Vallarta 1234, Col. Americana', referencias:'Casa azul, portón negro',
+         vehiculo:'Nissan Versa 2021', placas:'JKL-12-34', mensualidad:850, saldo:2550,
+         proxVenc:'2026-07-05', estatus:'al corriente', cobradorId:'u_cob', lat:null, lng:null},
+        {id:'c2', poliza:'POL-2023-0942', nombre:'Roberto Sánchez Mora', telefono:'3398765432',
+         direccion:'Calle Hidalgo 88, Centro', referencias:'Frente a la farmacia',
+         vehiculo:'VW Jetta 2019', placas:'ABC-98-76', mensualidad:1200, saldo:3600,
+         proxVenc:'2026-06-28', estatus:'vencido', cobradorId:'u_cob', lat:null, lng:null},
+        {id:'c3', poliza:'POL-2024-1455', nombre:'Laura Martínez Díaz', telefono:'3311223344',
+         direccion:'Prol. Américas 500, Providencia', referencias:'Edificio Torre 3, depto 12',
+         vehiculo:'KIA Rio 2022', placas:'XYZ-55-66', mensualidad:780, saldo:780,
+         proxVenc:'2026-07-12', estatus:'al corriente', cobradorId:'u_cob', lat:null, lng:null},
+        {id:'c4', poliza:'POL-2022-0510', nombre:'José Ramírez Luna', telefono:'3344556677',
+         direccion:'Niños Héroes 220, Ladrón de Guevara', referencias:'Casa esquina',
+         vehiculo:'Chevrolet Aveo 2018', placas:'MNB-11-22', mensualidad:950, saldo:5700,
+         proxVenc:'2026-06-20', estatus:'moroso', cobradorId:'u_cob', lat:null, lng:null}
+      ],
+      pagos: [],
+      bitacora: [],
+      meta: { folioSeq:{} }
+    };
+  }
+};
+
+/* ---------- Capa de Sincronización (adaptador) ----------
+   Hoy: stub local (marca pagos como sincronizados).
+   Mañana: implementar SyncProvider.push() contra Firestore
+   o Apps Script sin tocar el resto de la app.               */
+const Sync = {
+  online(){ return navigator.onLine; },
+  pendientes(){ return DB.data.pagos.filter(p=>p.estatus==='pendiente'); },
+  async push(){
+    /* >>> AQUÍ se conecta el backend real <<<
+       Ejemplo futuro:
+       await fetch(API_URL,{method:'POST',body:JSON.stringify(lote)})  */
+    const pend = this.pendientes();
+    if(!this.online()) throw new Error('offline');
+    await new Promise(r=>setTimeout(r,700)); /* simula red */
+    pend.forEach(p=> p.estatus='sincronizado');
+    DB.save();
+    return pend.length;
+  }
+};
+
+/* ============================================================
+   APP
+   ============================================================ */
+const App = {
+  user:null,
+  currentClient:null,
+  lastPago:null,
+  sig:{ctx:null,drawing:false,has:false},
+
+  init(){
+    DB.load();
+    window.addEventListener('online', ()=>this.refreshSyncBar());
+    window.addEventListener('offline', ()=>this.refreshSyncBar());
+    /* sesión persistente */
+    const s = sessionStorage.getItem('cob_user');
+    if(s){ this.user = JSON.parse(s); this.go('home'); }
+  },
+
+  /* ---------- Navegación ---------- */
+  screens:['login','home','client','pago','ticket','settings'],
+  go(name){
+    this.screens.forEach(s=>{
+      const el = document.getElementById(s+'Screen');
+      if(el) el.classList.toggle('hidden', s!==name);
+    });
+    window.scrollTo(0,0);
+    if(name==='home'){ this.renderHome(); }
+    if(name==='settings'){ this.renderSettings(); }
+  },
+
+  /* ---------- Auth ---------- */
+  async login(){
+    const usuario = document.getElementById('liUser').value.trim().toLowerCase();
+    const pass = document.getElementById('liPass').value;
+    const err = document.getElementById('liErr');
+    err.textContent='';
+    const u = DB.data.usuarios.find(x=>x.usuario.toLowerCase()===usuario && x.activo);
+    if(!u){ err.textContent='Usuario no encontrado o inactivo.'; return; }
+    const hash = await U.sha256(pass);
+    if(hash!==u.hash){ err.textContent='Contraseña incorrecta.'; return; }
+    this.user = {id:u.id, usuario:u.usuario, nombre:u.nombre, rol:u.rol, prefijo:u.prefijo};
+    sessionStorage.setItem('cob_user', JSON.stringify(this.user));
+    this.bitacora('Inicio de sesión');
+    document.getElementById('liPass').value='';
+    this.go('home');
+  },
+  logout(){
+    this.bitacora('Cierre de sesión');
+    this.user=null; sessionStorage.removeItem('cob_user');
+    this.go('login');
+  },
+  bitacora(accion){
+    DB.data.bitacora.unshift({fecha:new Date().toISOString(), usuario:this.user?.usuario||'-', accion});
+    DB.data.bitacora = DB.data.bitacora.slice(0,200);
+    DB.save();
+  },
+
+  /* ---------- Home ---------- */
+  renderHome(){
+    document.getElementById('homeUserName').textContent = this.user.nombre+' · '+this.user.prefijo;
+    this.refreshSyncBar();
+    this.renderClients();
+  },
+  misClientes(){
+    if(this.user.rol==='admin') return DB.data.clientes;
+    return DB.data.clientes.filter(c=>c.cobradorId===this.user.id);
+  },
+  renderClients(){
+    const q = (document.getElementById('searchInput').value||'').toLowerCase().trim();
+    let list = this.misClientes();
+    if(q){
+      list = list.filter(c=>
+        (c.nombre+c.telefono+c.placas+c.poliza).toLowerCase().includes(q));
+    }
+    const cont = document.getElementById('clientList');
+    if(!list.length){ cont.innerHTML='<div class="pad muted" style="text-align:center">Sin clientes que coincidan.</div>'; return; }
+    cont.innerHTML = list.map(c=>{
+      const vencido = this.estaVencido(c);
+      return `<div class="clientcard" onclick="App.openClient('${c.id}')">
+        <div class="avatar">${U.iniciales(c.nombre)}</div>
+        <div class="info">
+          <div class="nm">${c.nombre}</div>
+          <div class="meta">${c.poliza} · ${c.vehiculo}</div>
+        </div>
+        <div class="saldo">
+          <b>${U.money(c.saldo)}</b>
+          ${vencido?'<span class="pill alert" style="margin-top:3px">Vencido</span>':'<span class="muted" style="font-size:11px">vence '+U.fechaCorta(c.proxVenc)+'</span>'}
+        </div>
+        <span class="chev">›</span>
+      </div>`;
+    }).join('');
+  },
+  estaVencido(c){ return new Date(c.proxVenc) < new Date(new Date().toDateString()); },
+
+  refreshSyncBar(){
+    const pend = Sync.pendientes().length;
+    const icon = document.getElementById('syncIcon');
+    const txt = document.getElementById('syncTxt');
+    const btn = document.getElementById('syncBtn');
+    if(!navigator.onLine){
+      icon.textContent='📴'; txt.textContent='Sin conexión'; btn.textContent='Reintentar';
+    }else if(pend>0){
+      icon.textContent='⏳'; txt.textContent=pend+' pago(s) por sincronizar'; btn.textContent='Sincronizar';
+    }else{
+      icon.textContent='✅'; txt.textContent='Todo sincronizado'; btn.textContent='Actualizar';
+    }
+  },
+  async sync(){
+    const btn = document.getElementById('syncBtn');
+    if(!Sync.pendientes().length && navigator.onLine){ this.toast('Nada pendiente'); return; }
+    btn.disabled=true; btn.textContent='…';
+    try{
+      const n = await Sync.push();
+      this.toast(n?`${n} pago(s) sincronizados`:'Listo');
+      this.bitacora(`Sincronización: ${n} pago(s)`);
+    }catch(e){ this.toast('Sin conexión, se reintentará'); }
+    btn.disabled=false;
+    this.refreshSyncBar();
+    if(!document.getElementById('clientScreen').classList.contains('hidden')) this.renderClientDetail();
+  },
+
+  /* ---------- Detalle cliente ---------- */
+  openClient(id){
+    this.currentClient = DB.data.clientes.find(c=>c.id===id);
+    this.go('client');
+    this.renderClientDetail();
+  },
+  pagosDe(clienteId){
+    return DB.data.pagos.filter(p=>p.clienteId===clienteId)
+      .sort((a,b)=> new Date(b.fecha)-new Date(a.fecha));
+  },
+  renderClientDetail(){
+    const c = this.currentClient;
+    document.getElementById('cdName').textContent = c.nombre;
+    const vencido = this.estaVencido(c);
+    const pagos = this.pagosDe(c.id);
+    const histHtml = pagos.length ? pagos.map(p=>{
+      const cls = p.estatus==='pendiente'?'pend':(p.estatus==='validado'?'valid':'sync');
+      return `<div class="payrow">
+        <div><b>${U.money(p.importe)}</b><div class="pf">${U.fechaHora(p.fecha)} · ${p.metodo}</div></div>
+        <div style="text-align:right">
+          <span class="pill ${cls} dot">${p.estatus}</span>
+          <div class="pf">${p.folio}</div>
+        </div>
+      </div>`;
+    }).join('') : '<div class="muted" style="padding:8px 0">Sin pagos registrados.</div>';
+
+    document.getElementById('clientDetail').innerHTML = `
+      <div class="card pad">
+        <div style="display:flex;align-items:center;gap:13px;margin-bottom:6px">
+          <div class="avatar" style="width:52px;height:52px;font-size:19px">${U.iniciales(c.nombre)}</div>
+          <div style="flex:1">
+            <div style="font-size:18px;font-weight:700">${c.nombre}</div>
+            <div class="muted" style="font-size:13px">${c.poliza}</div>
+          </div>
+          ${vencido?'<span class="pill alert dot">Vencido</span>':'<span class="pill valid dot">'+c.estatus+'</span>'}
+        </div>
+      </div>
+
+      <div class="card pad" style="margin-top:14px">
+        <div class="kv"><span>Saldo pendiente</span><b style="color:${vencido?'var(--rojo)':'var(--ink)'}">${U.money(c.saldo)}</b></div>
+        <div class="kv"><span>Mensualidad</span><b>${U.money(c.mensualidad)}</b></div>
+        <div class="kv"><span>Próximo vencimiento</span><b>${U.fechaCorta(c.proxVenc)}</b></div>
+        <div class="kv"><span>Teléfono</span><b><a href="tel:${c.telefono}" style="color:var(--azul)">${c.telefono}</a></b></div>
+        <div class="kv"><span>Vehículo</span><b>${c.vehiculo}</b></div>
+        <div class="kv"><span>Placas</span><b>${c.placas}</b></div>
+        <div class="kv"><span>Dirección</span><b style="max-width:60%">${c.direccion}</b></div>
+        <div class="kv"><span>Referencias</span><b style="max-width:60%">${c.referencias||'—'}</b></div>
+      </div>
+
+      <div class="sectiontitle">Historial de pagos</div>
+      <div class="card pad" style="padding-top:4px;padding-bottom:4px">${histHtml}</div>
+    `;
+  },
+
+  /* ---------- Registrar pago ---------- */
+  openPago(){
+    const c = this.currentClient;
+    document.getElementById('pagoCliente').textContent = c.nombre;
+    document.getElementById('pImporte').value = c.mensualidad;
+    document.getElementById('pMetodo').value = 'Efectivo';
+    document.getElementById('pObs').value = '';
+    /* próximo vencimiento sugerido: +1 mes */
+    const d = new Date(); d.setMonth(d.getMonth()+1);
+    document.getElementById('pProxVenc').value = d.toISOString().slice(0,10);
+    document.getElementById('gpsTxt').textContent = 'Sin capturar';
+    this._gps = null;
+    this.go('pago');
+    this.initSig();
+  },
+  /* --- firma --- */
+  initSig(){
+    const cv = document.getElementById('sigCanvas');
+    const rect = cv.getBoundingClientRect();
+    const dpr = window.devicePixelRatio||1;
+    cv.width = rect.width*dpr; cv.height = 150*dpr;
+    const ctx = cv.getContext('2d'); ctx.scale(dpr,dpr);
+    ctx.lineWidth=2.2; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#13242B';
+    this.sig.ctx=ctx; this.sig.has=false;
+    document.getElementById('sigHint').style.display='block';
+    const pos = e=>{ const r=cv.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return {x:t.clientX-r.left, y:t.clientY-r.top}; };
+    const start = e=>{ e.preventDefault(); this.sig.drawing=true; const p=pos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); };
+    const move = e=>{ if(!this.sig.drawing)return; e.preventDefault(); const p=pos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); this.sig.has=true; document.getElementById('sigHint').style.display='none'; };
+    const end = ()=>{ this.sig.drawing=false; };
+    cv.onpointerdown=start; cv.onpointermove=move; cv.onpointerup=end; cv.onpointerleave=end;
+    cv.ontouchstart=start; cv.ontouchmove=move; cv.ontouchend=end;
+  },
+  clearSig(){
+    const cv=document.getElementById('sigCanvas');
+    this.sig.ctx.clearRect(0,0,cv.width,cv.height);
+    this.sig.has=false; document.getElementById('sigHint').style.display='block';
+  },
+  /* --- GPS --- */
+  captureGPS(){
+    const txt=document.getElementById('gpsTxt');
+    if(!navigator.geolocation){ txt.textContent='GPS no disponible'; return; }
+    txt.textContent='Capturando…';
+    navigator.geolocation.getCurrentPosition(
+      p=>{ this._gps={lat:p.coords.latitude, lng:p.coords.longitude};
+           txt.innerHTML='📍 '+this._gps.lat.toFixed(5)+', '+this._gps.lng.toFixed(5); },
+      ()=>{ txt.textContent='No se pudo obtener ubicación'; },
+      {enableHighAccuracy:true, timeout:8000}
+    );
+  },
+  /* --- folio con prefijo por cobrador (evita duplicados offline) --- */
+  nextFolio(){
+    const seq = DB.data.meta.folioSeq;
+    const key = this.user.prefijo;
+    seq[key] = (seq[key]||0)+1;
+    const n = String(seq[key]).padStart(5,'0');
+    return `${key}-${new Date().getFullYear()}-${n}`;
+  },
+  savePago(){
+    const importe = parseFloat(document.getElementById('pImporte').value);
+    if(!importe || importe<=0){ this.toast('Captura un importe válido'); return; }
+    if(!this.sig.has){ this.toast('Falta la firma del cobrador'); return; }
+    const c = this.currentClient;
+    const pago = {
+      folio: this.nextFolio(),
+      clienteId: c.id, clienteNombre: c.nombre, poliza: c.poliza,
+      fecha: new Date().toISOString(),
+      importe,
+      metodo: document.getElementById('pMetodo').value,
+      observaciones: document.getElementById('pObs').value.trim(),
+      proxVenc: document.getElementById('pProxVenc').value,
+      firma: document.getElementById('sigCanvas').toDataURL('image/png'),
+      lat: this._gps?.lat||null, lng: this._gps?.lng||null,
+      cobradorId: this.user.id, cobradorNombre: this.user.nombre,
+      estatus: 'pendiente', creadoEn: Date.now()
+    };
+    DB.data.pagos.unshift(pago);
+    /* actualiza saldo y vencimiento del cliente localmente */
+    c.saldo = Math.max(0, c.saldo - importe);
+    c.proxVenc = pago.proxVenc;
+    DB.save();
+    this.bitacora(`Pago ${pago.folio} ${U.money(importe)} a ${c.nombre}`);
+    this.lastPago = pago;
+    this.go('ticket');
+    this.renderTicket();
+    /* intento de sync inmediato si hay red */
+    if(navigator.onLine) this.sync();
+  },
+
+  /* ---------- Ticket ---------- */
+  renderTicket(){
+    const p = this.lastPago, e = DB.data.empresa, c = this.currentClient;
+    const box = document.getElementById('ticketBox');
+    box.innerHTML = `
+      <div class="ticket" id="ticketRender">
+        <div class="center b">${e.nombre}</div>
+        <div class="center" style="font-size:11px">${e.direccion}<br>Tel. ${e.tels} · RFC ${e.rfc}</div>
+        <hr>
+        <div class="center b">COMPROBANTE DE PAGO</div>
+        <div class="center">Folio: ${p.folio}</div>
+        <hr>
+        <div class="lineit"><span>Fecha:</span><span>${U.fechaHora(p.fecha)}</span></div>
+        <div class="lineit"><span>Cliente:</span><span>${c.nombre}</span></div>
+        <div class="lineit"><span>Póliza:</span><span>${p.poliza}</span></div>
+        <div class="lineit"><span>Método:</span><span>${p.metodo}</span></div>
+        <hr>
+        <div class="lineit b" style="font-size:15px"><span>PAGADO:</span><span>${U.money(p.importe)}</span></div>
+        <div class="lineit"><span>Saldo restante:</span><span>${U.money(c.saldo)}</span></div>
+        <div class="lineit"><span>Próx. venc.:</span><span>${U.fechaCorta(p.proxVenc)}</span></div>
+        ${p.observaciones?'<div style="margin-top:4px">Obs: '+p.observaciones+'</div>':''}
+        <div class="qr" id="ticketQR"></div>
+        <div class="center" style="font-size:11px">Atendió: ${p.cobradorNombre}</div>
+        <hr>
+        <div class="center" style="font-size:11px">${e.mensaje}</div>
+        <div class="center" style="font-size:10px;color:#888;margin-top:6px">${e.aviso}</div>
+      </div>`;
+    /* QR con datos de verificación */
+    const qrData = `MUTUCLUB|${p.folio}|${p.importe}|${p.fecha}`;
+    document.getElementById('ticketQR').innerHTML='';
+    new QRCode(document.getElementById('ticketQR'), {text:qrData, width:96, height:96, correctLevel:QRCode.CorrectLevel.M});
+  },
+
+  /* ---------- PDF (jsPDF) ---------- */
+  buildPDF(){
+    const p=this.lastPago, e=DB.data.empresa, c=this.currentClient;
+    const { jsPDF } = window.jspdf;
+    /* ticket angosto tipo 80mm */
+    const doc = new jsPDF({unit:'mm', format:[80,150]});
+    let y=10; const cx=40;
+    const center=(t,size,bold)=>{ doc.setFont('courier',bold?'bold':'normal'); doc.setFontSize(size); doc.text(t,cx,y,{align:'center'}); y+=size*0.42+1.5; };
+    const line=(l,r)=>{ doc.setFont('courier','normal'); doc.setFontSize(9); doc.text(l,6,y); doc.text(r,74,y,{align:'right'}); y+=4.6; };
+    const sep=()=>{ doc.setLineDashPattern([0.6,0.6],0); doc.line(6,y,74,y); y+=3.5; };
+    center(e.nombre,11,true);
+    center(e.direccion,8); center('Tel. '+e.tels+'  RFC '+e.rfc,8);
+    y+=1; sep();
+    center('COMPROBANTE DE PAGO',10,true); center('Folio: '+p.folio,9); sep();
+    line('Fecha:',U.fechaHora(p.fecha));
+    line('Cliente:', c.nombre.length>22?c.nombre.slice(0,22):c.nombre);
+    line('Poliza:',p.poliza); line('Metodo:',p.metodo); sep();
+    doc.setFont('courier','bold'); doc.setFontSize(12);
+    doc.text('PAGADO:',6,y); doc.text(U.money(p.importe),74,y,{align:'right'}); y+=6;
+    line('Saldo restante:',U.money(c.saldo));
+    line('Prox. venc.:',U.fechaCorta(p.proxVenc));
+    /* QR como imagen */
+    const qrCanvas = document.querySelector('#ticketQR canvas');
+    if(qrCanvas){ y+=2; doc.addImage(qrCanvas.toDataURL('image/png'),'PNG',cx-12,y,24,24); y+=27; }
+    /* firma */
+    if(p.firma){ doc.addImage(p.firma,'PNG',cx-18,y,36,12); y+=12; }
+    center('Atendio: '+p.cobradorNombre,8); sep();
+    doc.setFontSize(8);
+    const msg = doc.splitTextToSize(e.mensaje,68); doc.text(msg,cx,y,{align:'center'}); y+=msg.length*3.4;
+    doc.setFontSize(7); doc.setTextColor(120);
+    const av = doc.splitTextToSize(e.aviso,68); doc.text(av,cx,y,{align:'center'});
+    return doc;
+  },
+  downloadPDF(){
+    const doc=this.buildPDF();
+    doc.save(`Comprobante_${this.lastPago.folio}.pdf`);
+    this.toast('PDF descargado');
+  },
+
+  /* ---------- WhatsApp ---------- */
+  async shareWhatsApp(){
+    const p=this.lastPago, c=this.currentClient;
+    const tel = ('52'+c.telefono.replace(/\D/g,'')).replace(/^5252/,'52');
+    const msg = `Buen día Sr(a). ${c.nombre}, adjuntamos su comprobante de pago `+
+                `(folio ${p.folio}) por ${U.money(p.importe)}. ${DB.data.empresa.mensaje}`;
+    /* Mejor opción: compartir el PDF real vía hoja de compartir (Android) */
+    try{
+      const doc=this.buildPDF();
+      const blob=doc.output('blob');
+      const file=new File([blob],`Comprobante_${p.folio}.pdf`,{type:'application/pdf'});
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({files:[file], text:msg, title:'Comprobante de pago'});
+        return;
+      }
+    }catch(e){ /* si cancela o no soporta, cae al link */ }
+    /* Fallback: abre WhatsApp con mensaje (sin adjunto automático) */
+    window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`,'_blank');
+    this.toast('WhatsApp abierto · adjunta el PDF descargado');
+  },
+
+  /* ---------- Impresión térmica ESC/POS (Web Bluetooth) ---------- */
+  async printTicket(){
+    if(!navigator.bluetooth){ this.toast('Este navegador no soporta Bluetooth (usa Chrome en Android)'); return; }
+    try{
+      this.toast('Buscando impresora…');
+      /* servicios comunes de impresoras térmicas BLE */
+      const device = await navigator.bluetooth.requestDevice({
+        acceptAllDevices:true,
+        optionalServices:[0xFF00,0x18F0,0xFFE0,'000018f0-0000-1000-8000-00805f9b34fb']
+      });
+      const server = await device.gatt.connect();
+      const services = await server.getPrimaryServices();
+      let ch=null;
+      for(const s of services){
+        const chs = await s.getCharacteristics();
+        ch = chs.find(x=>x.properties.write || x.properties.writeWithoutResponse);
+        if(ch) break;
+      }
+      if(!ch){ this.toast('No se encontró canal de impresión'); return; }
+      const bytes = this.escpos();
+      /* enviar en bloques de 180 bytes */
+      for(let i=0;i<bytes.length;i+=180){
+        await ch.writeValue(bytes.slice(i,i+180));
+        await new Promise(r=>setTimeout(r,40));
+      }
+      this.toast('Ticket enviado a impresora');
+      this.bitacora('Impresión ticket '+this.lastPago.folio);
+    }catch(e){ this.toast('Impresión cancelada o sin impresora'); }
+  },
+  escpos(){
+    const p=this.lastPago, e=DB.data.empresa, c=this.currentClient;
+    const enc=new TextEncoder();
+    const out=[];
+    const push=(arr)=>out.push(...arr);
+    const text=(t)=>push([...enc.encode(t)]);
+    const ESC=0x1B, GS=0x1D;
+    push([ESC,0x40]);                 /* init */
+    push([ESC,0x61,0x01]);            /* centrar */
+    push([ESC,0x21,0x30]); text(e.nombre+'\n'); push([ESC,0x21,0x00]);
+    text(e.direccion+'\nTel. '+e.tels+'\nRFC '+e.rfc+'\n');
+    text('--------------------------------\n');
+    text('COMPROBANTE DE PAGO\nFolio: '+p.folio+'\n');
+    text('--------------------------------\n');
+    push([ESC,0x61,0x00]);            /* izquierda */
+    const ln=(l,r)=>{ const sp=Math.max(1,32-l.length-r.length); text(l+' '.repeat(sp)+r+'\n'); };
+    ln('Fecha:',U.fechaHora(p.fecha).slice(0,16));
+    ln('Cliente:', c.nombre.slice(0,22));
+    ln('Poliza:',p.poliza); ln('Metodo:',p.metodo);
+    text('--------------------------------\n');
+    push([ESC,0x21,0x20]); ln('PAGADO:',U.money(p.importe)); push([ESC,0x21,0x00]);
+    ln('Saldo:',U.money(c.saldo)); ln('Prox venc:',U.fechaCorta(p.proxVenc));
+    text('--------------------------------\n');
+    push([ESC,0x61,0x01]);
+    text('Atendio: '+p.cobradorNombre+'\n'+e.mensaje+'\n');
+    text('\n\n\n'); push([GS,0x56,0x00]); /* cortar */
+    return new Uint8Array(out);
+  },
+
+  /* ---------- Ajustes ---------- */
+  openSettings(){ this.go('settings'); },
+  renderSettings(){
+    const e=DB.data.empresa;
+    const isAdmin = this.user.rol==='admin';
+    document.getElementById('settingsBody').innerHTML = `
+      <div class="sectiontitle">Datos de la empresa (ticket)</div>
+      <div class="card pad">
+        ${['nombre','direccion','tels','rfc','mensaje','aviso'].map(k=>`
+          <div class="field"><label>${k}</label>
+          <input id="set_${k}" value="${(e[k]||'').replace(/"/g,'&quot;')}"></div>`).join('')}
+        <button class="btn" onclick="App.saveEmpresa()">Guardar datos</button>
+      </div>
+
+      <div class="sectiontitle">Estado</div>
+      <div class="card pad">
+        <div class="kv"><span>Usuario</span><b>${this.user.nombre} (${this.user.rol})</b></div>
+        <div class="kv"><span>Prefijo de folio</span><b>${this.user.prefijo}</b></div>
+        <div class="kv"><span>Pagos pendientes</span><b>${Sync.pendientes().length}</b></div>
+        <div class="kv"><span>Conexión</span><b>${navigator.onLine?'En línea':'Sin conexión'}</b></div>
+      </div>
+
+      ${isAdmin?`<div class="sectiontitle">Administración</div>
+      <div class="card pad">
+        <button class="btn ghost" onclick="App.exportExcel()">⬇ Exportar pagos a Excel (Access)</button>
+        <button class="btn ghost" style="margin-top:10px" onclick="App.showBitacora()">Ver bitácora</button>
+        <button class="btn ghost" style="margin-top:10px;color:var(--rojo);border-color:#f0caca" onclick="App.confirmReset()">Reiniciar datos demo</button>
+      </div>`:''}
+    `;
+  },
+  saveEmpresa(){
+    ['nombre','direccion','tels','rfc','mensaje','aviso'].forEach(k=>{
+      DB.data.empresa[k]=document.getElementById('set_'+k).value;
+    });
+    DB.save(); this.toast('Datos guardados');
+  },
+  exportExcel(){
+    /* CSV con separador ; compatible con importación a Access/Excel */
+    const rows = DB.data.pagos.map(p=>[
+      p.folio,p.fecha,p.clienteNombre,p.poliza,p.importe,p.metodo,
+      p.proxVenc,p.estatus,p.cobradorNombre,p.lat||'',p.lng||'',(p.observaciones||'').replace(/[;\n]/g,' ')
+    ]);
+    const head=['Folio','Fecha','Cliente','Poliza','Importe','Metodo','ProxVenc','Estatus','Cobrador','Lat','Lng','Observaciones'];
+    const csv='\uFEFF'+[head,...rows].map(r=>r.join(';')).join('\n');
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='Pagos_para_Access.csv'; a.click();
+    this.toast('Exportado: '+rows.length+' pago(s)');
+  },
+  showBitacora(){
+    const items = DB.data.bitacora.slice(0,40).map(b=>
+      `<div class="payrow"><div><b style="font-weight:500;font-size:14px">${b.accion}</b><div class="pf">${b.usuario}</div></div><div class="pf">${U.fechaHora(b.fecha)}</div></div>`
+    ).join('') || '<div class="muted">Sin registros.</div>';
+    this.modal('Bitácora de movimientos', `<div style="max-height:60vh;overflow:auto">${items}</div>`);
+  },
+  confirmReset(){
+    this.modal('¿Reiniciar datos demo?',
+      '<p class="muted">Se borrarán pagos y clientes y se restaurará la demo. Esta acción no se puede deshacer.</p>'+
+      '<button class="btn" style="background:var(--rojo)" onclick="App.doReset()">Sí, reiniciar</button>'+
+      '<button class="btn ghost" style="margin-top:10px" onclick="App.closeModal()">Cancelar</button>');
+  },
+  doReset(){ DB.reset(); this.closeModal(); this.toast('Datos reiniciados'); this.go('home'); },
+
+  /* ---------- UI helpers ---------- */
+  toast(msg){
+    const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+    clearTimeout(this._tt); this._tt=setTimeout(()=>t.classList.remove('show'),2400);
+  },
+  modal(title, html){
+    document.getElementById('modalRoot').innerHTML =
+      `<div class="modal" onclick="if(event.target===this)App.closeModal()">
+        <div class="sheet"><h3>${title}</h3>${html}</div>
+      </div>`;
+  },
+  closeModal(){ document.getElementById('modalRoot').innerHTML=''; }
+};
+
+/* Service worker para instalación / offline */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=> navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+
+App.init();
+</script>
+</body>
+</html>
