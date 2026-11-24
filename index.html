@@ -7,6 +7,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <title>Cobranza en Campo — Arts Nova MutuClub</title>
 <style>
+
   :root{
     --azul:#0E4D64; --azul-2:#0A3A4D; --azul-soft:#E4EEF1;
     --verde:#1FA37A; --verde-2:#178A66; --verde-soft:#E3F3EC;
@@ -144,6 +145,38 @@
   @keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
   .modal h3{margin:0 0 4px; font-size:18px}
   @media (prefers-reduced-motion: reduce){.modal .sheet{animation:none}}
+
+  /* ---- Agregados versión Access ---- */
+  .tabs{display:flex; gap:6px; background:#fff; border:1px solid var(--line); border-radius:var(--radius-sm); padding:4px; margin-bottom:12px}
+  .tabs button{flex:1; border:none; background:transparent; padding:10px 4px; border-radius:8px; font-size:14px; font-weight:600; color:var(--muted)}
+  .tabs button.on{background:var(--azul); color:#fff}
+  .tabs .n{display:inline-block; min-width:20px; font-size:11.5px; padding:1px 6px; border-radius:999px; background:rgba(0,0,0,.08); margin-left:4px}
+  .tabs button.on .n{background:rgba(255,255,255,.22)}
+  .pill.gris{background:#ECEFF0; color:#4a5a60}
+  .pill.juda{background:#EFE6F7; color:#5b2d82}
+  .pill.arca{background:#E6F2EA; color:#1f6a3a}
+  .pill.mut{background:var(--azul-soft); color:var(--azul)}
+  .clientcard{cursor:pointer}
+  .clientcard .saldo .pill{margin-top:3px}
+  .seg{display:flex; gap:8px; margin-bottom:14px}
+  .seg button{flex:1; min-height:46px; border-radius:var(--radius-sm); border:1.5px solid var(--line-2); background:#fff; font-weight:600; font-size:14px; color:var(--muted)}
+  .seg button.on{border-color:var(--azul); background:var(--azul-soft); color:var(--azul)}
+  .seg button.on.amb{border-color:var(--ambar); background:var(--ambar-soft); color:#7a520c}
+  .aviso{border-radius:var(--radius-sm); padding:10px 12px; font-size:13.5px; margin:-6px 0 14px}
+  .aviso.err{background:var(--rojo-soft); color:#8c2a2a}
+  .aviso.warn{background:var(--ambar-soft); color:#7a520c}
+  .aviso.ok{background:var(--verde-soft); color:#10684c}
+  .aviso button{margin-top:8px}
+  .acciones{display:flex; gap:8px; margin-top:12px}
+  .acciones a{flex:1; text-align:center; text-decoration:none; padding:10px 6px; border-radius:var(--radius-sm); border:1.5px solid var(--line-2); color:var(--azul); font-weight:600; font-size:14px; background:#fff}
+  .resumen{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px}
+  .resumen .card{padding:12px 14px}
+  .resumen b{display:block; font-size:19px}
+  .resumen span{font-size:12px; color:var(--muted)}
+  .grupo{font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); padding:12px 14px 6px; background:#F6F8F9; border-bottom:1px solid var(--line)}
+  .bottombar .btn.sm2{min-height:48px; font-size:14px}
+  .vacio{padding:26px 16px; text-align:center; color:var(--muted)}
+  .ver{font-size:11px; color:var(--muted); text-align:center; margin-top:18px}
 </style>
 </head>
 <body>
@@ -161,118 +194,86 @@
       <input id="liUser" autocomplete="username" autocapitalize="none" placeholder="usuario">
     </div>
     <div class="field">
-      <label>Contraseña</label>
-      <input id="liPass" type="password" autocomplete="current-password" placeholder="••••••••">
+      <label>PIN</label>
+      <input id="liPin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="••••">
     </div>
-    <button class="btn" onclick="App.login()">Entrar</button>
-    <p id="liErr" class="muted" style="text-align:center;font-size:13px;color:var(--rojo);margin:12px 0 0;min-height:18px"></p>
-    <p class="muted" style="text-align:center;font-size:12px;margin-top:14px;line-height:1.6">
-      Demo: <b>cobrador</b> / <b>1234</b><br>Admin: <b>admin</b> / <b>admin</b>
-    </p>
+    <button class="btn" id="liBtn" onclick="App.login()">Entrar</button>
+    <p id="liErr" style="text-align:center;font-size:13px;color:var(--rojo);margin:12px 0 0;min-height:18px"></p>
+    <p class="muted" style="text-align:center;font-size:12px;margin-top:10px">La primera vez necesitas internet.</p>
   </div>
 </div>
 
-<!-- ============ HOME (lista clientes) ============ -->
+<!-- ============ INICIO ============ -->
 <div id="homeScreen" class="screen hidden">
   <div class="topbar">
     <div style="flex:1">
-      <h1 style="margin:0">Mis clientes <span class="sub" id="homeUserName"></span></h1>
+      <h1 style="margin:0">Cobranza <span class="sub" id="homeUserName"></span></h1>
     </div>
-    <button class="iconbtn" onclick="App.openSettings()" aria-label="Ajustes">⚙️</button>
-    <button class="iconbtn" onclick="App.logout()" aria-label="Salir">⎋</button>
+    <button class="iconbtn" onclick="App.go('settings')" aria-label="Ajustes">⚙️</button>
   </div>
   <div class="content">
-    <div class="syncbar" id="syncBar">
-      <div class="left"><span id="syncIcon">☁️</span><span id="syncTxt">Todo sincronizado</span></div>
-      <button class="btn sm" id="syncBtn" onclick="App.sync()">Sincronizar</button>
+    <div class="syncbar">
+      <div class="left"><span id="syncIcon">☁️</span><span id="syncTxt">…</span></div>
+      <button class="btn sm" id="syncBtn" onclick="App.sync(true)">Actualizar</button>
     </div>
-    <div class="search">
-      <input id="searchInput" placeholder="Buscar por nombre, teléfono, placas o póliza" oninput="App.renderClients()">
+    <div class="tabs">
+      <button id="tab_tarjetas" onclick="App.tab('tarjetas')">Tarjetas<span class="n" id="n_tarjetas">0</span></button>
+      <button id="tab_cartera" onclick="App.tab('cartera')">Mi cartera<span class="n" id="n_cartera">0</span></button>
+      <button id="tab_recibos" onclick="App.tab('recibos')">Mis recibos<span class="n" id="n_recibos">0</span></button>
     </div>
-    <div class="card" id="clientList"></div>
+    <div class="search" id="searchWrap">
+      <input id="searchInput" placeholder="Buscar póliza, nombre, colonia o placas" oninput="App.renderLista()">
+    </div>
+    <div id="lista"></div>
+  </div>
+  <div class="bottombar">
+    <button class="btn ghost sm2" onclick="App.nuevoNoListado()">＋ Póliza no listada</button>
+    <button class="btn ghost sm2" style="color:var(--rojo)" onclick="App.nuevoCancelado()">✕ Cancelar recibo</button>
   </div>
 </div>
 
-<!-- ============ DETALLE CLIENTE ============ -->
+<!-- ============ DETALLE PÓLIZA ============ -->
 <div id="clientScreen" class="screen hidden">
   <div class="topbar">
     <button class="iconbtn" onclick="App.go('home')" aria-label="Atrás">←</button>
-    <h1 id="cdName">Cliente</h1>
+    <h1 id="cdName">Póliza</h1>
   </div>
   <div class="content" id="clientDetail"></div>
   <div class="bottombar">
-    <button class="btn green" onclick="App.openPago()">＋ Registrar pago</button>
+    <button class="btn green" onclick="App.nuevoCobro()">＋ Registrar cobro</button>
   </div>
 </div>
 
-<!-- ============ REGISTRAR PAGO ============ -->
-<div id="pagoScreen" class="screen hidden">
+<!-- ============ CAPTURA ============ -->
+<div id="capturaScreen" class="screen hidden">
   <div class="topbar">
-    <button class="iconbtn" onclick="App.go('client')" aria-label="Atrás">←</button>
-    <h1>Registrar pago<span class="sub" id="pagoCliente"></span></h1>
+    <button class="iconbtn" onclick="App.cancelarCaptura()" aria-label="Atrás">←</button>
+    <h1 id="capTitulo">Registrar cobro<span class="sub" id="capSub"></span></h1>
   </div>
   <div class="content">
-    <div class="card pad">
-      <div class="row">
-        <div class="field">
-          <label>Importe pagado</label>
-          <input id="pImporte" type="number" inputmode="decimal" placeholder="0.00">
-        </div>
-        <div class="field">
-          <label>Método</label>
-          <select id="pMetodo">
-            <option value="Efectivo">Efectivo</option>
-            <option value="Tarjeta">Tarjeta</option>
-            <option value="Transferencia">Transferencia</option>
-          </select>
-        </div>
-      </div>
-      <div class="field">
-        <label>Próximo vencimiento</label>
-        <input id="pProxVenc" type="date">
-      </div>
-      <div class="field">
-        <label>Observaciones <span class="muted" style="font-weight:400">(opcional)</span></label>
-        <textarea id="pObs" rows="2" placeholder="Notas del cobro…"></textarea>
-      </div>
-      <div class="field">
-        <label>Firma del cobrador</label>
-        <div class="sigwrap">
-          <canvas id="sigCanvas"></canvas>
-          <span class="sighint" id="sigHint">Firma aquí con el dedo</span>
-          <button class="sigclear" onclick="App.clearSig()">Borrar</button>
-        </div>
-      </div>
-      <div class="field" style="margin-bottom:0">
-        <label>Ubicación GPS</label>
-        <div class="row" style="align-items:center">
-          <button class="btn ghost sm" style="flex:0 0 auto" onclick="App.captureGPS()">📍 Capturar ubicación</button>
-          <span id="gpsTxt" class="muted" style="font-size:13px">Sin capturar</span>
-        </div>
-      </div>
-    </div>
+    <div class="card pad" id="capForm"></div>
   </div>
   <div class="bottombar">
-    <button class="btn green" onclick="App.savePago()">Guardar y generar ticket</button>
+    <button class="btn green" id="capGuardar" onclick="App.guardarCaptura()">Guardar</button>
   </div>
 </div>
 
-<!-- ============ TICKET ============ -->
+<!-- ============ COMPROBANTE ============ -->
 <div id="ticketScreen" class="screen hidden">
   <div class="topbar">
-    <button class="iconbtn" onclick="App.go('client')" aria-label="Atrás">←</button>
+    <button class="iconbtn" onclick="App.go('home')" aria-label="Atrás">←</button>
     <h1>Comprobante</h1>
   </div>
   <div class="content">
-    <div class="successbar">✓ Pago registrado <span class="pill pend dot" style="margin-left:auto">Pendiente de sincronizar</span></div>
+    <div class="successbar">✓ Cobro registrado <span class="pill pend dot" style="margin-left:auto" id="tkEstado">Por enviar</span></div>
     <div id="ticketBox"></div>
     <div style="height:14px"></div>
-    <div class="row" style="margin-bottom:10px">
-      <button class="btn green" onclick="App.shareWhatsApp()">💬 WhatsApp</button>
-      <button class="btn" onclick="App.downloadPDF()">⬇ PDF</button>
+    <button class="btn green" onclick="App.shareWhatsApp()">💬 Enviar por WhatsApp</button>
+    <div class="row" style="margin-top:10px">
+      <button class="btn ghost" onclick="App.downloadPDF()">⬇ PDF</button>
+      <button class="btn ghost" onclick="App.printTicket()">🖨 Ticket</button>
     </div>
-    <button class="btn amber" onclick="App.printTicket()">🖨 Imprimir ticket (Bluetooth)</button>
-    <button class="btn ghost" style="margin-top:10px" onclick="App.go('home')">Terminar</button>
+    <button class="btn" style="margin-top:10px" onclick="App.go('home')">Terminar</button>
   </div>
 </div>
 
@@ -288,7 +289,6 @@
 <div id="toast"></div>
 <div id="modalRoot"></div>
 
-<!-- Librerías -->
 <script>/* lz-string (incrustado, sin CDN) */
 var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",n="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$",e={};function t(r,o){if(!e[r]){e[r]={};for(var n=0;n<r.length;n++)e[r][r.charAt(n)]=n}return e[r][o]}var i={compressToBase64:function(r){if(null==r)return"";var n=i._compress(r,6,function(r){return o.charAt(r)});switch(n.length%4){default:case 0:return n;case 1:return n+"===";case 2:return n+"==";case 3:return n+"="}},decompressFromBase64:function(r){return null==r?"":""==r?null:i._decompress(r.length,32,function(n){return t(o,r.charAt(n))})},compressToUTF16:function(o){return null==o?"":i._compress(o,15,function(o){return r(o+32)})+" "},decompressFromUTF16:function(r){return null==r?"":""==r?null:i._decompress(r.length,16384,function(o){return r.charCodeAt(o)-32})},compressToUint8Array:function(r){for(var o=i.compress(r),n=new Uint8Array(2*o.length),e=0,t=o.length;e<t;e++){var s=o.charCodeAt(e);n[2*e]=s>>>8,n[2*e+1]=s%256}return n},decompressFromUint8Array:function(o){if(null==o)return i.decompress(o);for(var n=new Array(o.length/2),e=0,t=n.length;e<t;e++)n[e]=256*o[2*e]+o[2*e+1];var s=[];return n.forEach(function(o){s.push(r(o))}),i.decompress(s.join(""))},compressToEncodedURIComponent:function(r){return null==r?"":i._compress(r,6,function(r){return n.charAt(r)})},decompressFromEncodedURIComponent:function(r){return null==r?"":""==r?null:(r=r.replace(/ /g,"+"),i._decompress(r.length,32,function(o){return t(n,r.charAt(o))}))},compress:function(o){return i._compress(o,16,function(o){return r(o)})},_compress:function(r,o,n){if(null==r)return"";var e,t,i,s={},u={},a="",p="",c="",l=2,f=3,h=2,d=[],m=0,v=0;for(i=0;i<r.length;i+=1)if(a=r.charAt(i),Object.prototype.hasOwnProperty.call(s,a)||(s[a]=f++,u[a]=!0),p=c+a,Object.prototype.hasOwnProperty.call(s,p))c=p;else{if(Object.prototype.hasOwnProperty.call(u,c)){if(c.charCodeAt(0)<256){for(e=0;e<h;e++)m<<=1,v==o-1?(v=0,d.push(n(m)),m=0):v++;for(t=c.charCodeAt(0),e=0;e<8;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;e<h;e++)m=m<<1|t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=c.charCodeAt(0),e=0;e<16;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}0==--l&&(l=Math.pow(2,h),h++),delete u[c]}else for(t=s[c],e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;0==--l&&(l=Math.pow(2,h),h++),s[p]=f++,c=String(a)}if(""!==c){if(Object.prototype.hasOwnProperty.call(u,c)){if(c.charCodeAt(0)<256){for(e=0;e<h;e++)m<<=1,v==o-1?(v=0,d.push(n(m)),m=0):v++;for(t=c.charCodeAt(0),e=0;e<8;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;e<h;e++)m=m<<1|t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=c.charCodeAt(0),e=0;e<16;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}0==--l&&(l=Math.pow(2,h),h++),delete u[c]}else for(t=s[c],e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;0==--l&&(l=Math.pow(2,h),h++)}for(t=2,e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;for(;;){if(m<<=1,v==o-1){d.push(n(m));break}v++}return d.join("")},decompress:function(r){return null==r?"":""==r?null:i._decompress(r.length,32768,function(o){return r.charCodeAt(o)})},_decompress:function(o,n,e){var t,i,s,u,a,p,c,l=[],f=4,h=4,d=3,m="",v=[],g={val:e(0),position:n,index:1};for(t=0;t<3;t+=1)l[t]=t;for(s=0,a=Math.pow(2,2),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;switch(s){case 0:for(s=0,a=Math.pow(2,8),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;c=r(s);break;case 1:for(s=0,a=Math.pow(2,16),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;c=r(s);break;case 2:return""}for(l[3]=c,i=c,v.push(c);;){if(g.index>o)return"";for(s=0,a=Math.pow(2,d),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;switch(c=s){case 0:for(s=0,a=Math.pow(2,8),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;l[h++]=r(s),c=h-1,f--;break;case 1:for(s=0,a=Math.pow(2,16),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;l[h++]=r(s),c=h-1,f--;break;case 2:return v.join("")}if(0==f&&(f=Math.pow(2,d),d++),l[c])m=l[c];else{if(c!==h)return null;m=i+i.charAt(0)}v.push(m),l[h++]=i+m.charAt(0),i=m,0==--f&&(f=Math.pow(2,d),d++)}}};return i}();"function"==typeof define&&define.amd?define(function(){return LZString}):"undefined"!=typeof module&&null!=module?module.exports=LZString:"undefined"!=typeof angular&&null!=angular&&angular.module("LZString",[]).factory("LZString",function(){return LZString});
 </script>
@@ -696,653 +696,814 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this.parsedData=[];for(var b=[],d=0,e=this.data.length;e>d;d++){var f=this.data.charCodeAt(d);f>65536?(b[0]=240|(1835008&f)>>>18,b[1]=128|(258048&f)>>>12,b[2]=128|(4032&f)>>>6,b[3]=128|63&f):f>2048?(b[0]=224|(61440&f)>>>12,b[1]=128|(4032&f)>>>6,b[2]=128|63&f):f>128?(b[0]=192|(1984&f)>>>6,b[1]=128|63&f):b[0]=f,this.parsedData=this.parsedData.concat(b)}this.parsedData.length!=this.data.length&&(this.parsedData.unshift(191),this.parsedData.unshift(187),this.parsedData.unshift(239))}function b(a,b){this.typeNumber=a,this.errorCorrectLevel=b,this.modules=null,this.moduleCount=0,this.dataCache=null,this.dataList=[]}function i(a,b){if(void 0==a.length)throw new Error(a.length+"/"+b);for(var c=0;c<a.length&&0==a[c];)c++;this.num=new Array(a.length-c+b);for(var d=0;d<a.length-c;d++)this.num[d]=a[d+c]}function j(a,b){this.totalCount=a,this.dataCount=b}function k(){this.buffer=[],this.length=0}function m(){return"undefined"!=typeof CanvasRenderingContext2D}function n(){var a=!1,b=navigator.userAgent;return/android/i.test(b)&&(a=!0,aMat=b.toString().match(/android ([0-9]\.[0-9])/i),aMat&&aMat[1]&&(a=parseFloat(aMat[1]))),a}function r(a,b){for(var c=1,e=s(a),f=0,g=l.length;g>=f;f++){var h=0;switch(b){case d.L:h=l[f][0];break;case d.M:h=l[f][1];break;case d.Q:h=l[f][2];break;case d.H:h=l[f][3]}if(h>=e)break;c++}if(c>l.length)throw new Error("Too long data");return c}function s(a){var b=encodeURI(a).toString().replace(/\%[0-9a-fA-F]{2}/g,"a");return b.length+(b.length!=a?3:0)}a.prototype={getLength:function(){return this.parsedData.length},write:function(a){for(var b=0,c=this.parsedData.length;c>b;b++)a.put(this.parsedData[b],8)}},b.prototype={addData:function(b){var c=new a(b);this.dataList.push(c),this.dataCache=null},isDark:function(a,b){if(0>a||this.moduleCount<=a||0>b||this.moduleCount<=b)throw new Error(a+","+b);return this.modules[a][b]},getModuleCount:function(){return this.moduleCount},make:function(){this.makeImpl(!1,this.getBestMaskPattern())},makeImpl:function(a,c){this.moduleCount=4*this.typeNumber+17,this.modules=new Array(this.moduleCount);for(var d=0;d<this.moduleCount;d++){this.modules[d]=new Array(this.moduleCount);for(var e=0;e<this.moduleCount;e++)this.modules[d][e]=null}this.setupPositionProbePattern(0,0),this.setupPositionProbePattern(this.moduleCount-7,0),this.setupPositionProbePattern(0,this.moduleCount-7),this.setupPositionAdjustPattern(),this.setupTimingPattern(),this.setupTypeInfo(a,c),this.typeNumber>=7&&this.setupTypeNumber(a),null==this.dataCache&&(this.dataCache=b.createData(this.typeNumber,this.errorCorrectLevel,this.dataList)),this.mapData(this.dataCache,c)},setupPositionProbePattern:function(a,b){for(var c=-1;7>=c;c++)if(!(-1>=a+c||this.moduleCount<=a+c))for(var d=-1;7>=d;d++)-1>=b+d||this.moduleCount<=b+d||(this.modules[a+c][b+d]=c>=0&&6>=c&&(0==d||6==d)||d>=0&&6>=d&&(0==c||6==c)||c>=2&&4>=c&&d>=2&&4>=d?!0:!1)},getBestMaskPattern:function(){for(var a=0,b=0,c=0;8>c;c++){this.makeImpl(!0,c);var d=f.getLostPoint(this);(0==c||a>d)&&(a=d,b=c)}return b},createMovieClip:function(a,b,c){var d=a.createEmptyMovieClip(b,c),e=1;this.make();for(var f=0;f<this.modules.length;f++)for(var g=f*e,h=0;h<this.modules[f].length;h++){var i=h*e,j=this.modules[f][h];j&&(d.beginFill(0,100),d.moveTo(i,g),d.lineTo(i+e,g),d.lineTo(i+e,g+e),d.lineTo(i,g+e),d.endFill())}return d},setupTimingPattern:function(){for(var a=8;a<this.moduleCount-8;a++)null==this.modules[a][6]&&(this.modules[a][6]=0==a%2);for(var b=8;b<this.moduleCount-8;b++)null==this.modules[6][b]&&(this.modules[6][b]=0==b%2)},setupPositionAdjustPattern:function(){for(var a=f.getPatternPosition(this.typeNumber),b=0;b<a.length;b++)for(var c=0;c<a.length;c++){var d=a[b],e=a[c];if(null==this.modules[d][e])for(var g=-2;2>=g;g++)for(var h=-2;2>=h;h++)this.modules[d+g][e+h]=-2==g||2==g||-2==h||2==h||0==g&&0==h?!0:!1}},setupTypeNumber:function(a){for(var b=f.getBCHTypeNumber(this.typeNumber),c=0;18>c;c++){var d=!a&&1==(1&b>>c);this.modules[Math.floor(c/3)][c%3+this.moduleCount-8-3]=d}for(var c=0;18>c;c++){var d=!a&&1==(1&b>>c);this.modules[c%3+this.moduleCount-8-3][Math.floor(c/3)]=d}},setupTypeInfo:function(a,b){for(var c=this.errorCorrectLevel<<3|b,d=f.getBCHTypeInfo(c),e=0;15>e;e++){var g=!a&&1==(1&d>>e);6>e?this.modules[e][8]=g:8>e?this.modules[e+1][8]=g:this.modules[this.moduleCount-15+e][8]=g}for(var e=0;15>e;e++){var g=!a&&1==(1&d>>e);8>e?this.modules[8][this.moduleCount-e-1]=g:9>e?this.modules[8][15-e-1+1]=g:this.modules[8][15-e-1]=g}this.modules[this.moduleCount-8][8]=!a},mapData:function(a,b){for(var c=-1,d=this.moduleCount-1,e=7,g=0,h=this.moduleCount-1;h>0;h-=2)for(6==h&&h--;;){for(var i=0;2>i;i++)if(null==this.modules[d][h-i]){var j=!1;g<a.length&&(j=1==(1&a[g]>>>e));var k=f.getMask(b,d,h-i);k&&(j=!j),this.modules[d][h-i]=j,e--,-1==e&&(g++,e=7)}if(d+=c,0>d||this.moduleCount<=d){d-=c,c=-c;break}}}},b.PAD0=236,b.PAD1=17,b.createData=function(a,c,d){for(var e=j.getRSBlocks(a,c),g=new k,h=0;h<d.length;h++){var i=d[h];g.put(i.mode,4),g.put(i.getLength(),f.getLengthInBits(i.mode,a)),i.write(g)}for(var l=0,h=0;h<e.length;h++)l+=e[h].dataCount;if(g.getLengthInBits()>8*l)throw new Error("code length overflow. ("+g.getLengthInBits()+">"+8*l+")");for(g.getLengthInBits()+4<=8*l&&g.put(0,4);0!=g.getLengthInBits()%8;)g.putBit(!1);for(;;){if(g.getLengthInBits()>=8*l)break;if(g.put(b.PAD0,8),g.getLengthInBits()>=8*l)break;g.put(b.PAD1,8)}return b.createBytes(g,e)},b.createBytes=function(a,b){for(var c=0,d=0,e=0,g=new Array(b.length),h=new Array(b.length),j=0;j<b.length;j++){var k=b[j].dataCount,l=b[j].totalCount-k;d=Math.max(d,k),e=Math.max(e,l),g[j]=new Array(k);for(var m=0;m<g[j].length;m++)g[j][m]=255&a.buffer[m+c];c+=k;var n=f.getErrorCorrectPolynomial(l),o=new i(g[j],n.getLength()-1),p=o.mod(n);h[j]=new Array(n.getLength()-1);for(var m=0;m<h[j].length;m++){var q=m+p.getLength()-h[j].length;h[j][m]=q>=0?p.get(q):0}}for(var r=0,m=0;m<b.length;m++)r+=b[m].totalCount;for(var s=new Array(r),t=0,m=0;d>m;m++)for(var j=0;j<b.length;j++)m<g[j].length&&(s[t++]=g[j][m]);for(var m=0;e>m;m++)for(var j=0;j<b.length;j++)m<h[j].length&&(s[t++]=h[j][m]);return s};for(var c={MODE_NUMBER:1,MODE_ALPHA_NUM:2,MODE_8BIT_BYTE:4,MODE_KANJI:8},d={L:1,M:0,Q:3,H:2},e={PATTERN000:0,PATTERN001:1,PATTERN010:2,PATTERN011:3,PATTERN100:4,PATTERN101:5,PATTERN110:6,PATTERN111:7},f={PATTERN_POSITION_TABLE:[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],G15:1335,G18:7973,G15_MASK:21522,getBCHTypeInfo:function(a){for(var b=a<<10;f.getBCHDigit(b)-f.getBCHDigit(f.G15)>=0;)b^=f.G15<<f.getBCHDigit(b)-f.getBCHDigit(f.G15);return(a<<10|b)^f.G15_MASK},getBCHTypeNumber:function(a){for(var b=a<<12;f.getBCHDigit(b)-f.getBCHDigit(f.G18)>=0;)b^=f.G18<<f.getBCHDigit(b)-f.getBCHDigit(f.G18);return a<<12|b},getBCHDigit:function(a){for(var b=0;0!=a;)b++,a>>>=1;return b},getPatternPosition:function(a){return f.PATTERN_POSITION_TABLE[a-1]},getMask:function(a,b,c){switch(a){case e.PATTERN000:return 0==(b+c)%2;case e.PATTERN001:return 0==b%2;case e.PATTERN010:return 0==c%3;case e.PATTERN011:return 0==(b+c)%3;case e.PATTERN100:return 0==(Math.floor(b/2)+Math.floor(c/3))%2;case e.PATTERN101:return 0==b*c%2+b*c%3;case e.PATTERN110:return 0==(b*c%2+b*c%3)%2;case e.PATTERN111:return 0==(b*c%3+(b+c)%2)%2;default:throw new Error("bad maskPattern:"+a)}},getErrorCorrectPolynomial:function(a){for(var b=new i([1],0),c=0;a>c;c++)b=b.multiply(new i([1,g.gexp(c)],0));return b},getLengthInBits:function(a,b){if(b>=1&&10>b)switch(a){case c.MODE_NUMBER:return 10;case c.MODE_ALPHA_NUM:return 9;case c.MODE_8BIT_BYTE:return 8;case c.MODE_KANJI:return 8;default:throw new Error("mode:"+a)}else if(27>b)switch(a){case c.MODE_NUMBER:return 12;case c.MODE_ALPHA_NUM:return 11;case c.MODE_8BIT_BYTE:return 16;case c.MODE_KANJI:return 10;default:throw new Error("mode:"+a)}else{if(!(41>b))throw new Error("type:"+b);switch(a){case c.MODE_NUMBER:return 14;case c.MODE_ALPHA_NUM:return 13;case c.MODE_8BIT_BYTE:return 16;case c.MODE_KANJI:return 12;default:throw new Error("mode:"+a)}}},getLostPoint:function(a){for(var b=a.getModuleCount(),c=0,d=0;b>d;d++)for(var e=0;b>e;e++){for(var f=0,g=a.isDark(d,e),h=-1;1>=h;h++)if(!(0>d+h||d+h>=b))for(var i=-1;1>=i;i++)0>e+i||e+i>=b||(0!=h||0!=i)&&g==a.isDark(d+h,e+i)&&f++;f>5&&(c+=3+f-5)}for(var d=0;b-1>d;d++)for(var e=0;b-1>e;e++){var j=0;a.isDark(d,e)&&j++,a.isDark(d+1,e)&&j++,a.isDark(d,e+1)&&j++,a.isDark(d+1,e+1)&&j++,(0==j||4==j)&&(c+=3)}for(var d=0;b>d;d++)for(var e=0;b-6>e;e++)a.isDark(d,e)&&!a.isDark(d,e+1)&&a.isDark(d,e+2)&&a.isDark(d,e+3)&&a.isDark(d,e+4)&&!a.isDark(d,e+5)&&a.isDark(d,e+6)&&(c+=40);for(var e=0;b>e;e++)for(var d=0;b-6>d;d++)a.isDark(d,e)&&!a.isDark(d+1,e)&&a.isDark(d+2,e)&&a.isDark(d+3,e)&&a.isDark(d+4,e)&&!a.isDark(d+5,e)&&a.isDark(d+6,e)&&(c+=40);for(var k=0,e=0;b>e;e++)for(var d=0;b>d;d++)a.isDark(d,e)&&k++;var l=Math.abs(100*k/b/b-50)/5;return c+=10*l}},g={glog:function(a){if(1>a)throw new Error("glog("+a+")");return g.LOG_TABLE[a]},gexp:function(a){for(;0>a;)a+=255;for(;a>=256;)a-=255;return g.EXP_TABLE[a]},EXP_TABLE:new Array(256),LOG_TABLE:new Array(256)},h=0;8>h;h++)g.EXP_TABLE[h]=1<<h;for(var h=8;256>h;h++)g.EXP_TABLE[h]=g.EXP_TABLE[h-4]^g.EXP_TABLE[h-5]^g.EXP_TABLE[h-6]^g.EXP_TABLE[h-8];for(var h=0;255>h;h++)g.LOG_TABLE[g.EXP_TABLE[h]]=h;i.prototype={get:function(a){return this.num[a]},getLength:function(){return this.num.length},multiply:function(a){for(var b=new Array(this.getLength()+a.getLength()-1),c=0;c<this.getLength();c++)for(var d=0;d<a.getLength();d++)b[c+d]^=g.gexp(g.glog(this.get(c))+g.glog(a.get(d)));return new i(b,0)},mod:function(a){if(this.getLength()-a.getLength()<0)return this;for(var b=g.glog(this.get(0))-g.glog(a.get(0)),c=new Array(this.getLength()),d=0;d<this.getLength();d++)c[d]=this.get(d);for(var d=0;d<a.getLength();d++)c[d]^=g.gexp(g.glog(a.get(d))+b);return new i(c,0).mod(a)}},j.RS_BLOCK_TABLE=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],j.getRSBlocks=function(a,b){var c=j.getRsBlockTable(a,b);if(void 0==c)throw new Error("bad rs block @ typeNumber:"+a+"/errorCorrectLevel:"+b);for(var d=c.length/3,e=[],f=0;d>f;f++)for(var g=c[3*f+0],h=c[3*f+1],i=c[3*f+2],k=0;g>k;k++)e.push(new j(h,i));return e},j.getRsBlockTable=function(a,b){switch(b){case d.L:return j.RS_BLOCK_TABLE[4*(a-1)+0];case d.M:return j.RS_BLOCK_TABLE[4*(a-1)+1];case d.Q:return j.RS_BLOCK_TABLE[4*(a-1)+2];case d.H:return j.RS_BLOCK_TABLE[4*(a-1)+3];default:return void 0}},k.prototype={get:function(a){var b=Math.floor(a/8);return 1==(1&this.buffer[b]>>>7-a%8)},put:function(a,b){for(var c=0;b>c;c++)this.putBit(1==(1&a>>>b-c-1))},getLengthInBits:function(){return this.length},putBit:function(a){var b=Math.floor(this.length/8);this.buffer.length<=b&&this.buffer.push(0),a&&(this.buffer[b]|=128>>>this.length%8),this.length++}};var l=[[17,14,11,7],[32,26,20,14],[53,42,32,24],[78,62,46,34],[106,84,60,44],[134,106,74,58],[154,122,86,64],[192,152,108,84],[230,180,130,98],[271,213,151,119],[321,251,177,137],[367,287,203,155],[425,331,241,177],[458,362,258,194],[520,412,292,220],[586,450,322,250],[644,504,364,280],[718,560,394,310],[792,624,442,338],[858,666,482,382],[929,711,509,403],[1003,779,565,439],[1091,857,611,461],[1171,911,661,511],[1273,997,715,535],[1367,1059,751,593],[1465,1125,805,625],[1528,1190,868,658],[1628,1264,908,698],[1732,1370,982,742],[1840,1452,1030,790],[1952,1538,1112,842],[2068,1628,1168,898],[2188,1722,1228,958],[2303,1809,1283,983],[2431,1911,1351,1051],[2563,1989,1423,1093],[2699,2099,1499,1139],[2809,2213,1579,1219],[2953,2331,1663,1273]],o=function(){var a=function(a,b){this._el=a,this._htOption=b};return a.prototype.draw=function(a){function g(a,b){var c=document.createElementNS("http://www.w3.org/2000/svg",a);for(var d in b)b.hasOwnProperty(d)&&c.setAttribute(d,b[d]);return c}var b=this._htOption,c=this._el,d=a.getModuleCount();Math.floor(b.width/d),Math.floor(b.height/d),this.clear();var h=g("svg",{viewBox:"0 0 "+String(d)+" "+String(d),width:"100%",height:"100%",fill:b.colorLight});h.setAttributeNS("http://www.w3.org/2000/xmlns/","xmlns:xlink","http://www.w3.org/1999/xlink"),c.appendChild(h),h.appendChild(g("rect",{fill:b.colorDark,width:"1",height:"1",id:"template"}));for(var i=0;d>i;i++)for(var j=0;d>j;j++)if(a.isDark(i,j)){var k=g("use",{x:String(i),y:String(j)});k.setAttributeNS("http://www.w3.org/1999/xlink","href","#template"),h.appendChild(k)}},a.prototype.clear=function(){for(;this._el.hasChildNodes();)this._el.removeChild(this._el.lastChild)},a}(),p="svg"===document.documentElement.tagName.toLowerCase(),q=p?o:m()?function(){function a(){this._elImage.src=this._elCanvas.toDataURL("image/png"),this._elImage.style.display="block",this._elCanvas.style.display="none"}function d(a,b){var c=this;if(c._fFail=b,c._fSuccess=a,null===c._bSupportDataURI){var d=document.createElement("img"),e=function(){c._bSupportDataURI=!1,c._fFail&&_fFail.call(c)},f=function(){c._bSupportDataURI=!0,c._fSuccess&&c._fSuccess.call(c)};return d.onabort=e,d.onerror=e,d.onload=f,d.src="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",void 0}c._bSupportDataURI===!0&&c._fSuccess?c._fSuccess.call(c):c._bSupportDataURI===!1&&c._fFail&&c._fFail.call(c)}if(this._android&&this._android<=2.1){var b=1/window.devicePixelRatio,c=CanvasRenderingContext2D.prototype.drawImage;CanvasRenderingContext2D.prototype.drawImage=function(a,d,e,f,g,h,i,j){if("nodeName"in a&&/img/i.test(a.nodeName))for(var l=arguments.length-1;l>=1;l--)arguments[l]=arguments[l]*b;else"undefined"==typeof j&&(arguments[1]*=b,arguments[2]*=b,arguments[3]*=b,arguments[4]*=b);c.apply(this,arguments)}}var e=function(a,b){this._bIsPainted=!1,this._android=n(),this._htOption=b,this._elCanvas=document.createElement("canvas"),this._elCanvas.width=b.width,this._elCanvas.height=b.height,a.appendChild(this._elCanvas),this._el=a,this._oContext=this._elCanvas.getContext("2d"),this._bIsPainted=!1,this._elImage=document.createElement("img"),this._elImage.style.display="none",this._el.appendChild(this._elImage),this._bSupportDataURI=null};return e.prototype.draw=function(a){var b=this._elImage,c=this._oContext,d=this._htOption,e=a.getModuleCount(),f=d.width/e,g=d.height/e,h=Math.round(f),i=Math.round(g);b.style.display="none",this.clear();for(var j=0;e>j;j++)for(var k=0;e>k;k++){var l=a.isDark(j,k),m=k*f,n=j*g;c.strokeStyle=l?d.colorDark:d.colorLight,c.lineWidth=1,c.fillStyle=l?d.colorDark:d.colorLight,c.fillRect(m,n,f,g),c.strokeRect(Math.floor(m)+.5,Math.floor(n)+.5,h,i),c.strokeRect(Math.ceil(m)-.5,Math.ceil(n)-.5,h,i)}this._bIsPainted=!0},e.prototype.makeImage=function(){this._bIsPainted&&d.call(this,a)},e.prototype.isPainted=function(){return this._bIsPainted},e.prototype.clear=function(){this._oContext.clearRect(0,0,this._elCanvas.width,this._elCanvas.height),this._bIsPainted=!1},e.prototype.round=function(a){return a?Math.floor(1e3*a)/1e3:a},e}():function(){var a=function(a,b){this._el=a,this._htOption=b};return a.prototype.draw=function(a){for(var b=this._htOption,c=this._el,d=a.getModuleCount(),e=Math.floor(b.width/d),f=Math.floor(b.height/d),g=['<table style="border:0;border-collapse:collapse;">'],h=0;d>h;h++){g.push("<tr>");for(var i=0;d>i;i++)g.push('<td style="border:0;border-collapse:collapse;padding:0;margin:0;width:'+e+"px;height:"+f+"px;background-color:"+(a.isDark(h,i)?b.colorDark:b.colorLight)+';"></td>');g.push("</tr>")}g.push("</table>"),c.innerHTML=g.join("");var j=c.childNodes[0],k=(b.width-j.offsetWidth)/2,l=(b.height-j.offsetHeight)/2;k>0&&l>0&&(j.style.margin=l+"px "+k+"px")},a.prototype.clear=function(){this._el.innerHTML=""},a}();QRCode=function(a,b){if(this._htOption={width:256,height:256,typeNumber:4,colorDark:"#000000",colorLight:"#ffffff",correctLevel:d.H},"string"==typeof b&&(b={text:b}),b)for(var c in b)this._htOption[c]=b[c];"string"==typeof a&&(a=document.getElementById(a)),this._android=n(),this._el=a,this._oQRCode=null,this._oDrawing=new q(this._el,this._htOption),this._htOption.text&&this.makeCode(this._htOption.text)},QRCode.prototype.makeCode=function(a){this._oQRCode=new b(r(a,this._htOption.correctLevel),this._htOption.correctLevel),this._oQRCode.addData(a),this._oQRCode.make(),this._el.title=a,this._oDrawing.draw(this._oQRCode),this.makeImage()},QRCode.prototype.makeImage=function(){"function"==typeof this._oDrawing.makeImage&&(!this._android||this._android>=3)&&this._oDrawing.makeImage()},QRCode.prototype.clear=function(){this._oDrawing.clear()},QRCode.CorrectLevel=d}();
 </script>
 
+
 <script>
 /* ============================================================
-   COBRANZA EN CAMPO — Arts Nova MutuClub
-   App del cobrador, local-first (offline) con capa de sync
-   abstraída para enchufar Firebase / Apps Script después.
+   COBRANZA EN CAMPO — VERSIÓN ACCESS
+   Arts Nova MutuClub
+   - El recibo físico es el comprobante oficial; la app guarda el número.
+   - Todo funciona sin señal; se envía al servidor cuando hay datos.
+   - Nada entra a Access hasta que oficina lo importa en la Recepción.
    ============================================================ */
 
-/* ---------- Config de la empresa (editable en Ajustes) ---------- */
-const EMPRESA_DEFAULT = {
-  nombre:"ARTS NOVA MUTUCLUB",
-  direccion:"Guadalajara, Jalisco",
-  tels:"33 0000 0000",
-  rfc:"XAXX010101000",
-  redes:"facebook.com/artsnova",
-  mensaje:"Gracias por su pago. Conserve este comprobante.",
-  aviso:"Este comprobante es informativo. Sujeto a validación en oficina central."
-};
+/* Pega aquí la URL /exec de la aplicación web de Apps Script */
+const API_URL = '1u19B04FkixJ3g8l0ht9TeZzbAOUAA5TmDUeZtoVeLq8';
+
+const VERSION_APP = 'access-1.0';
+const KEY = 'campo_access_v1';
+const AUTO_SYNC_MIN = 5;          // minutos entre sincronizaciones automáticas
+const DIAS_CONSERVAR = 15;        // días que se guardan los recibos ya recibidos en oficina
 
 /* ---------- Utilidades ---------- */
 const U = {
-  async sha256(str){
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
-  },
   money(n){ return '$'+Number(n||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}); },
-  fechaCorta(d){ return new Date(d).toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'}); },
-  fechaHora(d){ return new Date(d).toLocaleString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); },
-  iniciales(nombre){ return (nombre||'').split(' ').filter(Boolean).slice(0,2).map(s=>s[0]).join('').toUpperCase(); },
-  uid(){ return 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+  hoyTxt(){ const d=new Date(); return U.dmy(d); },
+  dmy(d){ return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear(); },
+  isoDeDmy(s){ const m=String(s||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); return m? m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0') : ''; },
+  dmyDeIso(s){ const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m? m[3]+'/'+m[2]+'/'+m[1] : ''; },
+  fechaDeDmy(s){ const m=String(s||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); return m? new Date(+m[3],+m[2]-1,+m[1]) : null; },
+  ahoraTxt(){ const d=new Date(); return U.dmy(d)+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); },
+  iniciales(n){ return (n||'').split(' ').filter(Boolean).slice(0,2).map(s=>s[0]).join('').toUpperCase(); },
+  uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); },
+  esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); },
+  norm(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/\s+/g,' ').trim(); },
+  tel10(s){ const d=String(s||'').split(/[\/,;]/)[0].replace(/\D/g,''); return d.length>=10? d.slice(-10) : ''; }
 };
 
-/* ---------- Almacén local (localStorage + LZString) ----------
-   Estructura espejo de las colecciones de Firestore para
-   migrar sin reescribir la app.                               */
+/* Número de recibo: 'J349' -> {serie:'JUDA', num:349}; '89326' -> {serie:'MUT-ARCA', num:89326} */
+function parseRecibo(txt){
+  let t = String(txt||'').toUpperCase().replace(/[\s\-]/g,'');
+  let serie = 'MUT-ARCA';
+  if(t.startsWith('J')){ serie='JUDA'; t=t.slice(1); }
+  if(!/^\d+$/.test(t)) return null;
+  const num = parseInt(t,10);
+  if(!num) return null;
+  return { serie, num, texto: (serie==='JUDA'?'J':'')+num };
+}
+
+/* ---------- Almacén local ---------- */
 const DB = {
-  KEY:'cobranza_db_v1',
-  data:null,
+  d:null,
   load(){
-    try{
-      const raw = localStorage.getItem(this.KEY);
-      this.data = raw ? JSON.parse(LZString.decompressFromUTF16(raw)) : null;
-    }catch(e){ this.data = null; }
-    if(!this.data) this.data = this._seed();
-    return this.data;
+    try{ const raw=localStorage.getItem(KEY); this.d = raw? JSON.parse(LZString.decompressFromUTF16(raw)) : null; }catch(e){ this.d=null; }
+    if(!this.d) this.d = { sesion:null, cartera:{cols:[],rows:[]}, folios:[], config:{}, actualizado:'', ultimaSync:'', movs:[] };
+    this.d.movs = this.d.movs || [];
+    return this.d;
   },
   save(){
-    localStorage.setItem(this.KEY, LZString.compressToUTF16(JSON.stringify(this.data)));
-  },
-  reset(){ localStorage.removeItem(this.KEY); this.data = this._seed(); this.save(); },
-  _seed(){
-    /* Hashes precalculados: '1234' y 'admin' */
-    return {
-      empresa: {...EMPRESA_DEFAULT},
-      usuarios: [
-        {id:'u_cob', usuario:'cobrador', rol:'cobrador', nombre:'Juan Pérez', prefijo:'C01', activo:true,
-         hash:'03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'}, /* 1234 */
-        {id:'u_adm', usuario:'admin', rol:'admin', nombre:'Administrador', prefijo:'ADM', activo:true,
-         hash:'8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'}  /* admin */
-      ],
-      clientes: [
-        {id:'c1', poliza:'POL-2024-1187', nombre:'María González Ruiz', telefono:'3312345678',
-         direccion:'Av. Vallarta 1234, Col. Americana', referencias:'Casa azul, portón negro',
-         vehiculo:'Nissan Versa 2021', placas:'JKL-12-34', mensualidad:850, saldo:2550,
-         proxVenc:'2026-07-05', estatus:'al corriente', cobradorId:'u_cob', lat:null, lng:null},
-        {id:'c2', poliza:'POL-2023-0942', nombre:'Roberto Sánchez Mora', telefono:'3398765432',
-         direccion:'Calle Hidalgo 88, Centro', referencias:'Frente a la farmacia',
-         vehiculo:'VW Jetta 2019', placas:'ABC-98-76', mensualidad:1200, saldo:3600,
-         proxVenc:'2026-06-28', estatus:'vencido', cobradorId:'u_cob', lat:null, lng:null},
-        {id:'c3', poliza:'POL-2024-1455', nombre:'Laura Martínez Díaz', telefono:'3311223344',
-         direccion:'Prol. Américas 500, Providencia', referencias:'Edificio Torre 3, depto 12',
-         vehiculo:'KIA Rio 2022', placas:'XYZ-55-66', mensualidad:780, saldo:780,
-         proxVenc:'2026-07-12', estatus:'al corriente', cobradorId:'u_cob', lat:null, lng:null},
-        {id:'c4', poliza:'POL-2022-0510', nombre:'José Ramírez Luna', telefono:'3344556677',
-         direccion:'Niños Héroes 220, Ladrón de Guevara', referencias:'Casa esquina',
-         vehiculo:'Chevrolet Aveo 2018', placas:'MNB-11-22', mensualidad:950, saldo:5700,
-         proxVenc:'2026-06-20', estatus:'moroso', cobradorId:'u_cob', lat:null, lng:null}
-      ],
-      pagos: [],
-      bitacora: [],
-      meta: { folioSeq:{} }
-    };
+    try{ localStorage.setItem(KEY, LZString.compressToUTF16(JSON.stringify(this.d))); }
+    catch(e){ App.toast('⚠️ No se pudo guardar en el celular: '+e.message); }
   }
 };
 
-/* ============================================================
-   SINCRONIZACIÓN con backend Apps Script
-   Pega aquí la URL /exec de tu Web App. Mientras esté en
-   blanco, la app funciona 100% local (modo demo).            */
-const API_URL = 'https://script.google.com/macros/s/AKfycbwMg66kF1RZi8o7xLi-uoBGJt59dgccfsv6XkKRqDc55r4O2VK07hw1WYuXrFlYG04Ciw/exec';
-
-const Sync = {
-  online(){ return navigator.onLine; },
-  conectado(){ return API_URL.indexOf('http')===0; },
-  pendientes(){ return DB.data.pagos.filter(p=>p.estatus==='pendiente'); },
-
-  /* Envío de pendientes — POST text/plain en modo no-cors (fire-and-forget) */
-  async push(){
-    if(!this.online()) throw new Error('offline');
-    const pend = this.pendientes();
-    if(!this.conectado()){ pend.forEach(p=>p.estatus='sincronizado'); DB.save(); return pend.length; }
-    if(pend.length){
-      await fetch(API_URL, {
-        method:'POST', mode:'no-cors',
-        headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body: JSON.stringify({action:'pushPagos', pagos:pend})
-      });
-      pend.forEach(p=>p.estatus='sincronizado');
-      DB.save();
-    }
-    return pend.length;
-  },
-
-  /* Descarga maestro + pagos del servidor — JSONP (lectura cross-origin) */
-  async pull(){
-    if(!this.conectado()) return false;
-    const d = await jsonp(API_URL+'?action=pull');
-    if(!d || !d.ok) return false;
-    if(d.usuarios && d.usuarios.length) DB.data.usuarios = d.usuarios;
-    if(d.clientes && d.clientes.length) DB.data.clientes = d.clientes;
-    if(d.pagos){
-      const pendLocal = DB.data.pagos.filter(p=>p.estatus==='pendiente');
-      const enSrv = new Set(d.pagos.map(p=>p.folio));
-      DB.data.pagos = [...pendLocal.filter(p=>!enSrv.has(p.folio)), ...d.pagos]
-        .sort((a,b)=> (Number(b.creadoEn)||0)-(Number(a.creadoEn)||0));
-    }
-    DB.save();
-    return true;
-  }
-};
-
-/* JSONP: inserta un <script> y resuelve con el callback. Evita CORS en lecturas. */
-function jsonp(url){
+/* ---------- Comunicación con el servidor ---------- */
+function jsonp(params){
   return new Promise((resolve,reject)=>{
-    const cb = '__cob_cb'+Date.now();
+    if(!API_URL){ reject(new Error('Falta configurar la dirección del servidor (API_URL).')); return; }
+    const cb = '__cb'+Date.now()+Math.floor(Math.random()*1000);
     const s = document.createElement('script');
-    const to = setTimeout(()=>{ cleanup(); reject(new Error('timeout')); }, 12000);
-    function cleanup(){ clearTimeout(to); delete window[cb]; s.remove(); }
-    window[cb] = d=>{ cleanup(); resolve(d); };
-    s.onerror = ()=>{ cleanup(); reject(new Error('jsonp')); };
-    s.src = url + (url.indexOf('?')<0?'?':'&') + 'callback=' + cb;
+    const to = setTimeout(()=>{ fin(); reject(new Error('El servidor no respondió.')); }, 30000);
+    function fin(){ clearTimeout(to); try{ delete window[cb]; }catch(e){ window[cb]=undefined; } s.remove(); }
+    window[cb] = d=>{ fin(); resolve(d); };
+    s.onerror = ()=>{ fin(); reject(new Error('Sin conexión con el servidor.')); };
+    const q = Object.keys(params).map(k=>k+'='+encodeURIComponent(params[k])).join('&');
+    s.src = API_URL+'?'+q+'&callback='+cb;
     document.body.appendChild(s);
   });
 }
+
+const Sync = {
+  enCurso:false,
+  porEnviar(){ return DB.d.movs.filter(m=>!m.enviado); },
+
+  async subir(){
+    const pend = this.porEnviar();
+    if(!pend.length) return 0;
+    const ses = DB.d.sesion;
+    const payload = pend.map(m=>({
+      id:m.id, estatus:m.estatus, poliza:m.poliza, cliente:m.cliente, abono:m.abono, fecha:m.fecha,
+      recibo:m.recibo, motivo:m.motivo, fueraCartera:m.fueraCartera, fueraBlock:m.fueraBlock,
+      telefono:m.telefono, lat:m.lat, lng:m.lng, obs:m.obs, capturado:m.capturado
+    }));
+    let ids = null;
+    /* 1) POST normal */
+    try{
+      const r = await fetch(API_URL,{method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({action:'subir', usuario:ses.usuario, pin:ses.pin, pagos:payload})});
+      const d = await r.json();
+      if(d && d.ok) ids = d.ids;
+      else if(d && d.error) throw new Error(d.error);
+    }catch(e){
+      if(/PIN|Usuario|desactivado|intentos/i.test(e.message)) throw e;
+      ids = null;
+    }
+    /* 2) Respaldo por GET, de 3 en 3 */
+    if(!ids){
+      ids = [];
+      for(let i=0;i<payload.length;i+=3){
+        const d = await jsonp({action:'subir', usuario:ses.usuario, pin:ses.pin, pagos:JSON.stringify(payload.slice(i,i+3))});
+        if(!d || !d.ok) throw new Error((d&&d.error)||'No se pudo enviar');
+        ids.push(...d.ids);
+      }
+    }
+    const ok = new Set(ids);
+    let n=0;
+    DB.d.movs.forEach(m=>{ if(!m.enviado && ok.has(m.id)){ m.enviado=true; m.enviadoEn=U.ahoraTxt(); n++; } });
+    DB.save();
+    return n;
+  },
+
+  async bajar(){
+    const ses = DB.d.sesion;
+    const d = await jsonp({action:'datos', usuario:ses.usuario, pin:ses.pin});
+    if(!d || !d.ok) throw new Error((d&&d.error)||'No se pudieron descargar los datos');
+    DB.d.cartera = d.cartera || {cols:[],rows:[]};
+    DB.d.folios = d.folios || [];
+    DB.d.config = d.config || {};
+    DB.d.actualizado = d.actualizado || '';
+    DB.d.ultimaSync = U.ahoraTxt();
+    DB.d.sesion.cobrador = d.cobrador || DB.d.sesion.cobrador;
+    this.aplicarEstado(d.estado||{});
+    App.indexar();
+    DB.save();
+  },
+
+  aplicarEstado(est){
+    DB.d.movs.forEach(m=>{
+      const e = est[m.id];
+      if(e){ m.enviado = true; m.oficina = e[0]; m.corte = e[1]; }
+    });
+    /* limpieza: lo recibido en oficina hace más de N días */
+    const lim = Date.now() - DIAS_CONSERVAR*864e5;
+    DB.d.movs = DB.d.movs.filter(m=> !(m.oficina==='Recibido' && (m.ts||0) < lim));
+  }
+};
 
 /* ============================================================
    APP
    ============================================================ */
 const App = {
-  user:null,
-  currentClient:null,
-  lastPago:null,
-  sig:{ctx:null,drawing:false,has:false},
+  pestana:'tarjetas',
+  polizas:[],          // cartera indexada (objetos)
+  porId:{},
+  actual:null,         // póliza abierta
+  cap:null,            // captura en curso
+  ultimo:null,         // último cobro (comprobante)
 
   init(){
     DB.load();
-    window.addEventListener('online', ()=>this.refreshSyncBar());
-    window.addEventListener('offline', ()=>this.refreshSyncBar());
-    /* sesión persistente */
-    const s = sessionStorage.getItem('cob_user');
-    if(s){ this.user = JSON.parse(s); this.go('home'); this.bgPull(); }
+    window.addEventListener('online', ()=>this.sync(false));
+    window.addEventListener('offline', ()=>this.barra());
+    setInterval(()=>{ if(DB.d.sesion && navigator.onLine) this.sync(false); }, AUTO_SYNC_MIN*60000);
+    if(DB.d.sesion){
+      this.indexar();
+      this.go('home');
+      if(navigator.onLine) this.sync(false);
+    }
   },
 
   /* ---------- Navegación ---------- */
-  screens:['login','home','client','pago','ticket','settings'],
+  screens:['login','home','client','captura','ticket','settings'],
   go(name){
-    this.screens.forEach(s=>{
-      const el = document.getElementById(s+'Screen');
-      if(el) el.classList.toggle('hidden', s!==name);
-    });
+    this.screens.forEach(s=>{ const el=document.getElementById(s+'Screen'); if(el) el.classList.toggle('hidden', s!==name); });
     window.scrollTo(0,0);
-    if(name==='home'){ this.renderHome(); }
-    if(name==='settings'){ this.renderSettings(); }
+    if(name==='home') this.renderHome();
+    if(name==='settings') this.renderSettings();
   },
 
-  /* ---------- Auth ---------- */
+  /* ---------- Sesión ---------- */
   async login(){
     const usuario = document.getElementById('liUser').value.trim().toLowerCase();
-    const pass = document.getElementById('liPass').value;
-    const err = document.getElementById('liErr');
+    const pin = document.getElementById('liPin').value.trim();
+    const err = document.getElementById('liErr'), btn = document.getElementById('liBtn');
     err.textContent='';
-    const u = DB.data.usuarios.find(x=>x.usuario.toLowerCase()===usuario && x.activo);
-    if(!u){ err.textContent='Usuario no encontrado o inactivo.'; return; }
-    const hash = await U.sha256(pass);
-    if(hash!==u.hash){ err.textContent='Contraseña incorrecta.'; return; }
-    this.user = {id:u.id, usuario:u.usuario, nombre:u.nombre, rol:u.rol, prefijo:u.prefijo};
-    sessionStorage.setItem('cob_user', JSON.stringify(this.user));
-    this.bitacora('Inicio de sesión');
-    document.getElementById('liPass').value='';
-    this.go('home');
-    this.bgPull();
+    if(!usuario || !pin){ err.textContent='Escribe tu usuario y PIN.'; return; }
+    btn.disabled=true; btn.textContent='Entrando…';
+    try{
+      const d = await jsonp({action:'login', usuario, pin});
+      if(!d.ok) throw new Error(d.error||'No se pudo entrar');
+      /* si en este celular quedó otro cobrador con movimientos sin enviar, no se mezclan */
+      if(DB.d.movs.some(m=>!m.enviado) && DB.d.sesion && DB.d.sesion.usuario!==usuario){
+        throw new Error('Este celular tiene cobros sin enviar de otro usuario. Envíalos primero.');
+      }
+      if(DB.d.sesion && DB.d.sesion.usuario!==usuario) DB.d.movs = [];
+      DB.d.sesion = {usuario, pin, cobrador:d.cobrador};
+      DB.save();
+      btn.textContent='Descargando cartera…';
+      await Sync.bajar();
+      document.getElementById('liPin').value='';
+      this.go('home');
+    }catch(e){
+      err.textContent = e.message;
+    }
+    btn.disabled=false; btn.textContent='Entrar';
   },
   logout(){
-    this.bitacora('Cierre de sesión');
-    this.user=null; sessionStorage.removeItem('cob_user');
+    if(Sync.porEnviar().length){
+      this.modal('No puedes salir todavía', '<p class="muted">Tienes cobros sin enviar. Conéctate a internet y presiona <b>Actualizar</b> antes de salir.</p><button class="btn" onclick="App.closeModal()">Entendido</button>');
+      return;
+    }
+    DB.d.sesion = null; DB.save();
+    this.closeModal();
     this.go('login');
   },
-  bitacora(accion){
-    DB.data.bitacora.unshift({fecha:new Date().toISOString(), usuario:this.user?.usuario||'-', accion});
-    DB.data.bitacora = DB.data.bitacora.slice(0,200);
-    DB.save();
+
+  /* ---------- Cartera ---------- */
+  indexar(){
+    const c = DB.d.cartera || {cols:[],rows:[]};
+    const cols = c.cols||[];
+    this.polizas = (c.rows||[]).map(r=>{ const o={}; cols.forEach((h,i)=>o[h]=r[i]); return o; });
+    this.porId = {};
+    this.polizas.forEach(p=>{ this.porId[String(p.IdPoliza).toUpperCase()] = p; });
+    const fs = new Set();
+    (DB.d.folios||[]).forEach(f=>fs.add(f[0]+'|'+parseInt(f[1],10)));
+    this.folios = fs;
+  },
+  cobradoHoy(pol){
+    const hoy=U.hoyTxt();
+    return DB.d.movs.some(m=>m.poliza===pol && m.estatus==='Cobrado' && m.capturado && m.capturado.startsWith(hoy));
   },
 
-  /* ---------- Home ---------- */
+  /* ---------- Inicio ---------- */
   renderHome(){
-    document.getElementById('homeUserName').textContent = this.user.nombre+' · '+this.user.prefijo;
-    this.refreshSyncBar();
-    this.renderClients();
+    const s = DB.d.sesion;
+    document.getElementById('homeUserName').textContent = s ? s.cobrador : '';
+    this.barra();
+    this.tab(this.pestana);
   },
-  misClientes(){
-    if(this.user.rol==='admin') return DB.data.clientes;
-    return DB.data.clientes.filter(c=>c.cobradorId===this.user.id);
+  tab(t){
+    this.pestana = t;
+    ['tarjetas','cartera','recibos'].forEach(x=>document.getElementById('tab_'+x).classList.toggle('on', x===t));
+    document.getElementById('searchWrap').classList.toggle('hidden', t==='recibos');
+    document.getElementById('n_tarjetas').textContent = this.polizas.filter(p=>p.TarjetaEnCalle==='1').length;
+    document.getElementById('n_cartera').textContent = this.polizas.length;
+    document.getElementById('n_recibos').textContent = DB.d.movs.filter(m=>m.oficina!=='Recibido').length;
+    this.renderLista();
   },
-  renderClients(){
-    const q = (document.getElementById('searchInput').value||'').toLowerCase().trim();
-    let list = this.misClientes();
-    if(q){
-      list = list.filter(c=>
-        (c.nombre+c.telefono+c.placas+c.poliza).toLowerCase().includes(q));
-    }
-    const cont = document.getElementById('clientList');
-    if(!list.length){ cont.innerHTML='<div class="pad muted" style="text-align:center">Sin clientes que coincidan.</div>'; return; }
-    cont.innerHTML = list.map(c=>{
-      const vencido = this.estaVencido(c);
-      return `<div class="clientcard" onclick="App.openClient('${c.id}')">
-        <div class="avatar">${U.iniciales(c.nombre)}</div>
-        <div class="info">
-          <div class="nm">${c.nombre}</div>
-          <div class="meta">${c.poliza} · ${c.vehiculo}</div>
-        </div>
-        <div class="saldo">
-          <b>${U.money(c.saldo)}</b>
-          ${vencido?'<span class="pill alert" style="margin-top:3px">Vencido</span>':'<span class="muted" style="font-size:11px">vence '+U.fechaCorta(c.proxVenc)+'</span>'}
-        </div>
-        <span class="chev">›</span>
-      </div>`;
-    }).join('');
+  barra(){
+    if(!DB.d.sesion) return;
+    const pend = Sync.porEnviar().length;
+    const icon=document.getElementById('syncIcon'), txt=document.getElementById('syncTxt');
+    if(this._sincronizando){ icon.textContent='🔄'; txt.textContent='Actualizando…'; return; }
+    if(!navigator.onLine){ icon.textContent='📴'; txt.textContent = pend? pend+' sin enviar · sin señal' : 'Sin señal · trabajando sin conexión'; }
+    else if(pend){ icon.textContent='⏳'; txt.textContent = pend+' cobro(s) por enviar'; }
+    else { icon.textContent='✅'; txt.textContent = 'Todo enviado'+(DB.d.ultimaSync?' · '+DB.d.ultimaSync.slice(-5):''); }
   },
-  estaVencido(c){ return new Date(c.proxVenc) < new Date(new Date().toDateString()); },
-
-  refreshSyncBar(){
-    const pend = Sync.pendientes().length;
-    const icon = document.getElementById('syncIcon');
-    const txt = document.getElementById('syncTxt');
-    const btn = document.getElementById('syncBtn');
-    if(!navigator.onLine){
-      icon.textContent='📴'; txt.textContent='Sin conexión'; btn.textContent='Reintentar';
-    }else if(pend>0){
-      icon.textContent='⏳'; txt.textContent=pend+' pago(s) por sincronizar'; btn.textContent='Sincronizar';
-    }else{
-      icon.textContent='✅'; txt.textContent='Todo sincronizado'; btn.textContent='Actualizar';
-    }
-  },
-  async sync(){
-    const btn = document.getElementById('syncBtn');
-    btn.disabled=true; btn.textContent='…';
+  async sync(manual){
+    if(Sync.enCurso || !DB.d.sesion) return;
+    if(!navigator.onLine){ if(manual) this.toast('Sin señal. Se enviará cuando haya datos.'); this.barra(); return; }
+    Sync.enCurso = true; this._sincronizando = true; this.barra();
+    const btn=document.getElementById('syncBtn'); btn.disabled=true;
     try{
-      const n = await Sync.push();
-      await Sync.pull();
-      this.toast(n?`${n} pago(s) sincronizados`:'Actualizado');
-      this.bitacora(`Sincronización: ${n} pago(s)`);
-    }catch(e){ this.toast('Sin conexión, se reintentará'); }
-    btn.disabled=false;
-    this.refreshSyncBar();
-    if(!document.getElementById('homeScreen').classList.contains('hidden')) this.renderClients();
-    if(!document.getElementById('clientScreen').classList.contains('hidden')) this.renderClientDetail();
-  },
-  /* descarga en segundo plano al iniciar sesión */
-  bgPull(){
-    if(!Sync.conectado()) return;
-    Sync.pull().then(ok=>{ if(ok){ this.refreshSyncBar(); if(!document.getElementById('homeScreen').classList.contains('hidden')) this.renderClients(); }}).catch(()=>{});
+      const n = await Sync.subir();
+      await Sync.bajar();
+      if(manual || n) this.toast(n? n+' cobro(s) enviados' : 'Cartera actualizada');
+    }catch(e){
+      if(/PIN|Usuario|desactivado/i.test(e.message)){
+        this.modal('Revisa tu acceso', '<p class="muted">'+U.esc(e.message)+'</p><p class="muted">Tus cobros siguen guardados en el celular.</p><button class="btn" onclick="App.closeModal()">Entendido</button>');
+      } else if(manual) this.toast(e.message);
+    }
+    Sync.enCurso = false; this._sincronizando = false; btn.disabled=false;
+    this.barra();
+    if(!document.getElementById('homeScreen').classList.contains('hidden')) this.tab(this.pestana);
   },
 
-  /* ---------- Detalle cliente ---------- */
-  openClient(id){
-    this.currentClient = DB.data.clientes.find(c=>c.id===id);
+  renderLista(){
+    const cont = document.getElementById('lista');
+    if(this.pestana==='recibos'){ cont.innerHTML = this.htmlRecibos(); return; }
+    const q = U.norm(document.getElementById('searchInput').value);
+    let lista = this.pestana==='tarjetas' ? this.polizas.filter(p=>p.TarjetaEnCalle==='1') : this.polizas.slice();
+    if(q) lista = lista.filter(p=> U.norm([p.IdPoliza,p.Cliente,p.Colonia,p.Placas,p.Domicilio].join(' ')).includes(q));
+    if(this.pestana==='tarjetas') lista.sort((a,b)=> (a.Colonia||'').localeCompare(b.Colonia||'') || (+b.Atrasadas)-(+a.Atrasadas));
+    else lista.sort((a,b)=> (+b.Atrasadas)-(+a.Atrasadas) || (a.Cliente||'').localeCompare(b.Cliente||''));
+    if(!lista.length){
+      cont.innerHTML = '<div class="card vacio">'+(q?'Sin resultados.':(this.pestana==='tarjetas'?'No tienes tarjetas pendientes.':'No tienes pólizas asignadas.'))+
+        (DB.d.actualizado?'<div style="font-size:12px;margin-top:6px">Cartera de oficina: '+U.esc(DB.d.actualizado)+'</div>':'')+'</div>';
+      return;
+    }
+    const MAX=150, extra = lista.length>MAX ? lista.length-MAX : 0;
+    cont.innerHTML = '<div class="card">'+lista.slice(0,MAX).map(p=>this.htmlPoliza(p)).join('')+
+      (extra?'<div class="vacio">…y '+extra+' más. Usa el buscador.</div>':'')+'</div>';
+  },
+  pillEstatus(p){
+    const a = +p.Atrasadas||0;
+    if(p.Estatus==='Expirada') return '<span class="pill gris">Expirada</span>';
+    if(a>=2) return '<span class="pill alert">'+a+' atrasadas</span>';
+    if(a===1) return '<span class="pill pend">1 atrasada</span>';
+    return '<span class="pill valid">Al corriente</span>';
+  },
+  pillEmpresa(e){
+    return e==='JUDA'?'<span class="pill juda">Juda</span>': e==='ARCA'?'<span class="pill arca">Arca</span>':'<span class="pill mut">Mutuclub</span>';
+  },
+  htmlPoliza(p){
+    const hoy = this.cobradoHoy(String(p.IdPoliza).toUpperCase());
+    return `<div class="clientcard" onclick="App.abrir('${U.esc(p.IdPoliza)}')">
+      <div class="avatar">${U.esc(U.iniciales(p.Cliente))}</div>
+      <div class="info">
+        <div class="nm">${U.esc(p.Cliente)}</div>
+        <div class="meta">${U.esc(p.IdPoliza)} · ${U.esc(p.Colonia||p.Domicilio||'')}</div>
+      </div>
+      <div class="saldo">
+        <b>${U.money(p.Mensualidad)}</b>
+        ${hoy?'<span class="pill valid">✓ Cobrada hoy</span>':this.pillEstatus(p)}
+      </div>
+      <span class="chev">›</span>
+    </div>`;
+  },
+
+  htmlRecibos(){
+    const movs = DB.d.movs.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+    const hoy = U.hoyTxt();
+    const deHoy = movs.filter(m=>m.capturado && m.capturado.startsWith(hoy));
+    const cobradoHoy = deHoy.filter(m=>m.estatus==='Cobrado').reduce((s,m)=>s+Number(m.abono||0),0);
+    const porRecibir = movs.filter(m=>m.oficina!=='Recibido');
+    const efectivo = porRecibir.filter(m=>m.estatus==='Cobrado').reduce((s,m)=>s+Number(m.abono||0),0);
+    let h = `<div class="resumen">
+      <div class="card"><span>Cobrado hoy</span><b>${U.money(cobradoHoy)}</b><span>${deHoy.filter(m=>m.estatus==='Cobrado').length} cobro(s)</span></div>
+      <div class="card"><span>Por entregar en oficina</span><b>${U.money(efectivo)}</b><span>${porRecibir.length} recibo(s)</span></div>
+    </div>`;
+    const pendientes = movs.filter(m=>m.estatus==='Pendiente' && !this.pendienteEntregado(m));
+    const grupos = [
+      ['Recibos pendientes de entregar al cliente', pendientes, true],
+      ['Por enviar (sin señal)', movs.filter(m=>!m.enviado), false],
+      ['Enviados · por entregar en oficina', movs.filter(m=>m.enviado && m.oficina!=='Recibido'), false],
+      ['Recibidos en oficina', movs.filter(m=>m.oficina==='Recibido'), false]
+    ];
+    let algo=false;
+    grupos.forEach(([titulo, lista, esPend])=>{
+      if(!lista.length) return; algo=true;
+      h += '<div class="card" style="margin-bottom:12px"><div class="grupo">'+titulo+' ('+lista.length+')</div>'+
+        lista.map(m=>this.htmlMov(m, esPend)).join('')+'</div>';
+    });
+    if(!algo) h += '<div class="card vacio">Todavía no registras recibos.</div>';
+    return h;
+  },
+  pendienteEntregado(m){
+    return DB.d.movs.some(x=>x.entregaDe===m.id);
+  },
+  htmlMov(m, esPend){
+    const tipo = m.estatus==='Cobrado' ? U.money(m.abono) : (m.estatus==='Cancelado' ? 'Cancelado' : 'Pendiente');
+    const cls = m.estatus==='Cobrado'?'valid':(m.estatus==='Cancelado'?'alert':'pend');
+    const est = !m.enviado ? '<span class="pill pend">Por enviar</span>' :
+                (m.oficina==='Recibido' ? '<span class="pill valid">Corte '+U.esc(m.corte||'')+'</span>' : '<span class="pill sync">Enviado</span>');
+    return `<div class="payrow" style="padding:11px 14px">
+      <div style="min-width:0">
+        <b>Recibo ${U.esc(m.recibo)}</b> <span class="pill ${cls}">${tipo}</span>
+        <div class="pf">${U.esc(m.poliza||'Sin póliza')} · ${U.esc((m.cliente||m.motivo||'').slice(0,28))}</div>
+        <div class="pf">${U.esc(m.fecha)}${m.fueraBlock?' · <b style="color:var(--ambar)">fuera de block</b>':''}${m.fueraCartera?' · <b style="color:var(--ambar)">fuera de cartera</b>':''}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        ${est}
+        ${esPend?`<div style="margin-top:6px"><button class="btn sm green" onclick="App.entregarPendiente('${m.id}')">Entregar</button></div>`:''}
+        ${m.estatus==='Cobrado'?`<div style="margin-top:6px"><button class="btn sm ghost" onclick="App.verComprobante('${m.id}')">Comprobante</button></div>`:''}
+      </div>
+    </div>`;
+  },
+
+  /* ---------- Detalle de póliza ---------- */
+  abrir(id){
+    this.actual = this.porId[String(id).toUpperCase()];
+    if(!this.actual) return;
     this.go('client');
-    this.renderClientDetail();
+    this.renderDetalle();
   },
-  pagosDe(clienteId){
-    return DB.data.pagos.filter(p=>p.clienteId===clienteId)
-      .sort((a,b)=> new Date(b.fecha)-new Date(a.fecha));
-  },
-  renderClientDetail(){
-    const c = this.currentClient;
-    document.getElementById('cdName').textContent = c.nombre;
-    const vencido = this.estaVencido(c);
-    const pagos = this.pagosDe(c.id);
-    const histHtml = pagos.length ? pagos.map(p=>{
-      const cls = p.estatus==='pendiente'?'pend':(p.estatus==='validado'?'valid':'sync');
-      return `<div class="payrow">
-        <div><b>${U.money(p.importe)}</b><div class="pf">${U.fechaHora(p.fecha)} · ${p.metodo}</div></div>
-        <div style="text-align:right">
-          <span class="pill ${cls} dot">${p.estatus}</span>
-          <div class="pf">${p.folio}</div>
-        </div>
-      </div>`;
-    }).join('') : '<div class="muted" style="padding:8px 0">Sin pagos registrados.</div>';
-
+  renderDetalle(){
+    const p = this.actual;
+    document.getElementById('cdName').textContent = p.IdPoliza;
+    const tel = U.tel10(p.Telefono);
+    const dir = [p.Domicilio,p.Colonia,p.Municipio].filter(Boolean).join(', ');
+    const mapa = 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(dir+', Jalisco');
+    const ult = String(p.UltimosPagos||'').split(';').filter(Boolean).map(x=>x.split('|'));
+    const locales = DB.d.movs.filter(m=>m.poliza===String(p.IdPoliza).toUpperCase()).sort((a,b)=>(b.ts||0)-(a.ts||0));
+    const filasPagos =
+      locales.map(m=>`<div class="payrow"><div><b>${m.estatus==='Cobrado'?U.money(m.abono):m.estatus}</b><div class="pf">${U.esc(m.fecha)} · recibo ${U.esc(m.recibo)}</div></div><span class="pill ${m.oficina==='Recibido'?'valid':'pend'}">${m.oficina==='Recibido'?'En oficina':'Tuyo, por entregar'}</span></div>`).join('') +
+      ult.map(u=>`<div class="payrow"><div><b>${U.money(u[1])}</b><div class="pf">${U.esc(u[0])} · recibo ${U.esc(u[2]||'—')}</div></div><span class="pill gris">Registrado</span></div>`).join('');
     document.getElementById('clientDetail').innerHTML = `
       <div class="card pad">
-        <div style="display:flex;align-items:center;gap:13px;margin-bottom:6px">
-          <div class="avatar" style="width:52px;height:52px;font-size:19px">${U.iniciales(c.nombre)}</div>
-          <div style="flex:1">
-            <div style="font-size:18px;font-weight:700">${c.nombre}</div>
-            <div class="muted" style="font-size:13px">${c.poliza}</div>
+        <div style="display:flex;align-items:center;gap:13px">
+          <div class="avatar" style="width:52px;height:52px;font-size:19px">${U.esc(U.iniciales(p.Cliente))}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:18px;font-weight:700">${U.esc(p.Cliente)}</div>
+            <div style="margin-top:4px">${this.pillEmpresa(p.Empresa)} ${this.pillEstatus(p)}</div>
           </div>
-          ${vencido?'<span class="pill alert dot">Vencido</span>':'<span class="pill valid dot">'+c.estatus+'</span>'}
         </div>
       </div>
 
-      <div class="card pad" style="margin-top:14px">
-        <div class="kv"><span>Saldo pendiente</span><b style="color:${vencido?'var(--rojo)':'var(--ink)'}">${U.money(c.saldo)}</b></div>
-        <div class="kv"><span>Mensualidad</span><b>${U.money(c.mensualidad)}</b></div>
-        <div class="kv"><span>Próximo vencimiento</span><b>${U.fechaCorta(c.proxVenc)}</b></div>
-        <div class="kv"><span>Teléfono</span><b><a href="tel:${c.telefono}" style="color:var(--azul)">${c.telefono}</a></b></div>
-        <div class="kv"><span>Vehículo</span><b>${c.vehiculo}</b></div>
-        <div class="kv"><span>Placas</span><b>${c.placas}</b></div>
-        <div class="kv"><span>Dirección</span><b style="max-width:60%">${c.direccion}</b></div>
-        <div class="kv"><span>Referencias</span><b style="max-width:60%">${c.referencias||'—'}</b></div>
+      <div class="sectiontitle">Cobro</div>
+      <div class="card pad">
+        <div class="kv"><span>Mensualidad</span><b style="font-size:17px">${U.money(p.Mensualidad)}</b></div>
+        <div class="kv"><span>Día límite de pago</span><b>${U.esc(p.DiaLimite||'—')}</b></div>
+        <div class="kv"><span>Próximo pago</span><b>${U.esc(p.ProximoPago||'—')}</b></div>
+        <div class="kv"><span>Mensualidades atrasadas</span><b style="color:${(+p.Atrasadas)>0?'var(--rojo)':'inherit'}">${U.esc(p.Atrasadas||'0')}</b></div>
+        <div class="kv"><span>Saldo</span><b>${U.money(p.Saldo)}</b></div>
+        <div class="kv"><span>Estatus</span><b>${U.esc(p.Estatus||'')}</b></div>
+        <div class="kv"><span>Tarjeta enviada</span><b>${p.TarjetaEnCalle==='1'?U.esc(p.EnvioTarjeta):'No'}</b></div>
       </div>
 
-      <div class="sectiontitle">Historial de pagos</div>
-      <div class="card pad" style="padding-top:4px;padding-bottom:4px">${histHtml}</div>
+      <div class="sectiontitle">Cliente</div>
+      <div class="card pad">
+        <div class="kv"><span>Domicilio</span><b style="max-width:65%">${U.esc(dir||'—')}</b></div>
+        <div class="kv"><span>Teléfono</span><b>${U.esc(p.Telefono||'—')}</b></div>
+        <div class="acciones">
+          ${tel?`<a href="tel:${tel}">📞 Llamar</a><a href="https://wa.me/52${tel}" target="_blank" rel="noopener">💬 WhatsApp</a>`:''}
+          ${dir?`<a href="${mapa}" target="_blank" rel="noopener">📍 Mapa</a>`:''}
+        </div>
+      </div>
+
+      <div class="sectiontitle">Vehículo</div>
+      <div class="card pad">
+        <div class="kv"><span>Vehículo</span><b>${U.esc([p.Vehiculo,p.Modelo].filter(Boolean).join(' ')||'—')}</b></div>
+        <div class="kv"><span>Color</span><b>${U.esc(p.Color||'—')}</b></div>
+        <div class="kv"><span>Placas</span><b>${U.esc(p.Placas||'—')}</b></div>
+      </div>
+
+      <div class="sectiontitle">Últimos pagos</div>
+      <div class="card pad" style="padding-top:4px;padding-bottom:4px">${filasPagos||'<div class="muted" style="padding:10px 0">Sin pagos registrados.</div>'}</div>
+      ${DB.d.actualizado?'<div class="ver">Datos de oficina al '+U.esc(DB.d.actualizado)+'</div>':''}
     `;
   },
 
-  /* ---------- Registrar pago ---------- */
-  openPago(){
-    const c = this.currentClient;
-    document.getElementById('pagoCliente').textContent = c.nombre;
-    document.getElementById('pImporte').value = c.mensualidad;
-    document.getElementById('pMetodo').value = 'Efectivo';
-    document.getElementById('pObs').value = '';
-    /* próximo vencimiento sugerido: +1 mes */
-    const d = new Date(); d.setMonth(d.getMonth()+1);
-    document.getElementById('pProxVenc').value = d.toISOString().slice(0,10);
-    document.getElementById('gpsTxt').textContent = 'Sin capturar';
+  /* ---------- Captura ---------- */
+  nuevoCobro(){
+    const p = this.actual;
+    this.cap = { modo:'cobro', estatus:'Cobrado', poliza:String(p.IdPoliza).toUpperCase(), cliente:p.Cliente,
+                 empresa:p.Empresa, abono:Number(p.Mensualidad)||'', telefono:U.tel10(p.Telefono), saldo:Number(p.Saldo)||0 };
+    this.abrirCaptura();
+  },
+  nuevoNoListado(){
+    this.cap = { modo:'nolistado', estatus:'Cobrado', poliza:'', cliente:'', empresa:'', abono:'', telefono:'' };
+    this.abrirCaptura();
+  },
+  nuevoCancelado(){
+    this.cap = { modo:'cancelado', estatus:'Cancelado', poliza:'', cliente:'', empresa:'', abono:0, motivo:'Mal llenado' };
+    this.abrirCaptura();
+  },
+  entregarPendiente(id){
+    const m = DB.d.movs.find(x=>x.id===id);
+    if(!m) return;
+    const p = this.porId[m.poliza] || {};
+    this.cap = { modo:'entrega', estatus:'Cobrado', poliza:m.poliza, cliente:m.cliente, empresa:p.Empresa||m.empresa||'',
+                 abono:m.abono||Number(p.Mensualidad)||'', telefono:m.telefono||U.tel10(p.Telefono), recibo:m.recibo,
+                 fechaRecibo:m.fecha, entregaDe:m.id, saldo:Number(p.Saldo)||0 };
+    this.abrirCaptura();
+  },
+  abrirCaptura(){
+    const c = this.cap;
+    c.fechaRecibo = c.fechaRecibo || U.hoyTxt();
+    c.recibo = c.recibo || '';
+    c.obs = c.obs || '';
+    const titulos = {cobro:'Registrar cobro', nolistado:'Póliza no listada', cancelado:'Cancelar recibo', entrega:'Entregar recibo pendiente'};
+    document.getElementById('capTitulo').firstChild.textContent = titulos[c.modo];
+    document.getElementById('capSub').textContent = c.cliente ? c.cliente : '';
+    this.renderCaptura();
+    this.go('captura');
+    this.capturarGPS();
+  },
+  renderCaptura(){
+    const c = this.cap;
+    let h = '';
+    if(c.modo==='cobro'){
+      h += `<div class="seg">
+        <button class="${c.estatus==='Cobrado'?'on':''}" onclick="App.capSet('estatus','Cobrado')">Cobrado</button>
+        <button class="${c.estatus==='Pendiente'?'on amb':''}" onclick="App.capSet('estatus','Pendiente')">Pendiente<br><span style="font-weight:400;font-size:11.5px">no encontré al cliente</span></button>
+      </div>`;
+    }
+    if(c.modo==='nolistado'){
+      h += `<div class="field"><label>Número de póliza</label><input id="cPoliza" value="${U.esc(c.poliza)}" autocapitalize="characters" oninput="App.capLeer()" placeholder="Ej. 12345 o 1234J"></div>
+            <div class="field"><label>Nombre del cliente</label><input id="cCliente" value="${U.esc(c.cliente)}" oninput="App.capLeer()"></div>`;
+    }
+    if(c.modo==='entrega'){
+      h += `<div class="aviso ok" style="margin:0 0 14px">Recibo <b>${U.esc(c.recibo)}</b> de la póliza <b>${U.esc(c.poliza)}</b>. Al guardarlo queda como <b>cobrado</b>.</div>`;
+    } else {
+      h += `<div class="field"><label>Número del recibo físico</label>
+              <input id="cRecibo" value="${U.esc(c.recibo)}" inputmode="text" autocapitalize="characters" oninput="App.capLeer()" placeholder="${c.empresa==='JUDA'?'Ej. J349':'Ej. 89326'}"></div>
+            <div id="cAviso"></div>`;
+    }
+    if(c.modo==='cancelado'){
+      h += `<div class="field"><label>Motivo</label>
+              <select id="cMotivo" onchange="App.capLeer()">
+                ${['Mal llenado','Extraviado','Roto o dañado','Otro'].map(x=>`<option ${c.motivo===x?'selected':''}>${x}</option>`).join('')}
+              </select></div>
+            <div class="field"><label>Póliza <span class="muted" style="font-weight:400">(si el recibo era de alguna)</span></label>
+              <input id="cPoliza" value="${U.esc(c.poliza)}" autocapitalize="characters" oninput="App.capLeer()"></div>`;
+    }
+    if(c.estatus==='Cobrado' || c.modo==='cobro'){
+      if(c.estatus!=='Cancelado'){
+        h += `<div class="row">
+          <div class="field"><label>Abono</label><input id="cAbono" type="number" inputmode="decimal" value="${U.esc(c.abono)}" oninput="App.capLeer()"></div>
+          <div class="field"><label>Fecha del recibo</label><input id="cFecha" type="date" value="${U.isoDeDmy(c.fechaRecibo)}" oninput="App.capLeer()"></div>
+        </div>`;
+      }
+    }
+    if(c.estatus==='Cobrado'){
+      h += `<div class="field"><label>Celular para WhatsApp <span class="muted" style="font-weight:400">(opcional)</span></label>
+              <input id="cTel" type="tel" inputmode="numeric" value="${U.esc(c.telefono||'')}" oninput="App.capLeer()" placeholder="10 dígitos"></div>`;
+    }
+    h += `<div class="field" style="margin-bottom:0"><label>Observaciones <span class="muted" style="font-weight:400">(opcional)</span></label>
+            <textarea id="cObs" rows="2" oninput="App.capLeer()">${U.esc(c.obs)}</textarea></div>`;
+    document.getElementById('capForm').innerHTML = h;
+    document.getElementById('capGuardar').textContent =
+      c.estatus==='Cancelado' ? 'Guardar recibo cancelado' : (c.estatus==='Pendiente' ? 'Guardar como pendiente' : 'Guardar cobro');
+    document.getElementById('capGuardar').className = 'btn '+(c.estatus==='Cancelado'?'':'green');
+    if(c.estatus==='Cancelado') document.getElementById('capGuardar').style.background='var(--rojo)';
+    else document.getElementById('capGuardar').style.background='';
+    this.mostrarValidacion();
+  },
+  capSet(k,v){ this.capLeer(); this.cap[k]=v; this.renderCaptura(); },
+  capLeer(){
+    const c=this.cap, g=id=>{ const el=document.getElementById(id); return el? el.value : null; };
+    if(g('cPoliza')!==null){ c.poliza = g('cPoliza').trim().toUpperCase(); const p=this.porId[c.poliza]; c.empresa = p? p.Empresa : (c.poliza.endsWith('J')?'JUDA':''); }
+    if(g('cCliente')!==null) c.cliente = g('cCliente').trim();
+    if(g('cRecibo')!==null) c.recibo = g('cRecibo').trim().toUpperCase();
+    if(g('cAbono')!==null) c.abono = g('cAbono');
+    if(g('cFecha')!==null) c.fechaRecibo = U.dmyDeIso(g('cFecha')) || c.fechaRecibo;
+    if(g('cTel')!==null) c.telefono = g('cTel');
+    if(g('cObs')!==null) c.obs = g('cObs');
+    if(g('cMotivo')!==null) c.motivo = g('cMotivo');
+    this.mostrarValidacion();
+  },
+
+  /* Revisa el número de recibo. Devuelve {nivel:'ok'|'warn'|'err', msg, recibo, fueraBlock, arreglo} */
+  validarRecibo(c){
+    if(c.modo==='entrega'){ const o=DB.d.movs.find(m=>m.id===c.entregaDe); return {nivel:'ok', recibo:c.recibo, fueraBlock:!!(o&&o.fueraBlock)}; }
+    if(!c.recibo) return {nivel:'err', msg:'Escribe el número del recibo físico.'};
+    const r = parseRecibo(c.recibo);
+    if(!r) return {nivel:'err', msg:'Escribe solo números. Los recibos de Juda llevan J al inicio (ej. J349).'};
+    if(c.empresa==='JUDA' && r.serie!=='JUDA')
+      return {nivel:'err', msg:'Esta póliza es de <b>Juda</b>: el recibo lleva J al inicio.', arreglo:'J'+r.num};
+    if(c.empresa && c.empresa!=='JUDA' && r.serie==='JUDA')
+      return {nivel:'err', msg:'Esta póliza es de <b>Mutuclub/Arca</b>: el recibo no lleva J.', arreglo:String(r.num)};
+    const previo = DB.d.movs.find(m=>m.recibo===r.texto);
+    if(previo){
+      if(previo.estatus==='Pendiente' && !this.pendienteEntregado(previo))
+        return {nivel:'err', msg:'Este recibo está <b>pendiente de entregar</b>. Ve a <b>Mis recibos → Entregar</b>.'};
+      return {nivel:'err', msg:'Ya registraste el recibo <b>'+r.texto+'</b> ('+previo.estatus.toLowerCase()+', '+U.esc(previo.fecha)+').'};
+    }
+    if(!this.folios.size)
+      return {nivel:'warn', msg:'Oficina no te tiene blocks registrados. Se guardará como <b>fuera de block</b>.', recibo:r.texto, fueraBlock:true};
+    if(!this.folios.has(r.serie+'|'+r.num))
+      return {nivel:'warn', msg:'El recibo <b>'+r.texto+'</b> no está en tus blocks. Revisa el número. Si es correcto, se guardará como <b>fuera de block</b>.', recibo:r.texto, fueraBlock:true};
+    return {nivel:'ok', msg:'Recibo de tu block ✓', recibo:r.texto, fueraBlock:false};
+  },
+  mostrarValidacion(){
+    const box = document.getElementById('cAviso');
+    if(!box) return;
+    const c = this.cap;
+    if(!c.recibo){ box.innerHTML=''; return; }
+    const v = this.validarRecibo(c);
+    box.innerHTML = v.msg ? `<div class="aviso ${v.nivel}">${v.msg}${v.arreglo?`<div><button class="btn sm ghost" onclick="App.arreglarRecibo('${v.arreglo}')">Cambiar a ${v.arreglo}</button></div>`:''}</div>` : '';
+  },
+  arreglarRecibo(t){ this.cap.recibo=t; this.renderCaptura(); },
+  capturarGPS(){
     this._gps = null;
-    this.go('pago');
-    this.initSig();
+    if(!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(p=>{ this._gps={lat:+p.coords.latitude.toFixed(6), lng:+p.coords.longitude.toFixed(6)}; }, ()=>{}, {enableHighAccuracy:true, timeout:10000, maximumAge:120000});
   },
-  /* --- firma --- */
-  initSig(){
-    const cv = document.getElementById('sigCanvas');
-    const rect = cv.getBoundingClientRect();
-    const dpr = window.devicePixelRatio||1;
-    cv.width = rect.width*dpr; cv.height = 150*dpr;
-    const ctx = cv.getContext('2d'); ctx.scale(dpr,dpr);
-    ctx.lineWidth=2.2; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#13242B';
-    this.sig.ctx=ctx; this.sig.has=false;
-    document.getElementById('sigHint').style.display='block';
-    const pos = e=>{ const r=cv.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return {x:t.clientX-r.left, y:t.clientY-r.top}; };
-    const start = e=>{ e.preventDefault(); this.sig.drawing=true; const p=pos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); };
-    const move = e=>{ if(!this.sig.drawing)return; e.preventDefault(); const p=pos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); this.sig.has=true; document.getElementById('sigHint').style.display='none'; };
-    const end = ()=>{ this.sig.drawing=false; };
-    cv.onpointerdown=start; cv.onpointermove=move; cv.onpointerup=end; cv.onpointerleave=end;
-    cv.ontouchstart=start; cv.ontouchmove=move; cv.ontouchend=end;
+  cancelarCaptura(){
+    if(this.cap && this.cap.modo==='cobro') this.go('client'); else this.go('home');
   },
-  clearSig(){
-    const cv=document.getElementById('sigCanvas');
-    this.sig.ctx.clearRect(0,0,cv.width,cv.height);
-    this.sig.has=false; document.getElementById('sigHint').style.display='block';
-  },
-  /* --- GPS --- */
-  captureGPS(){
-    const txt=document.getElementById('gpsTxt');
-    if(!navigator.geolocation){ txt.textContent='GPS no disponible'; return; }
-    txt.textContent='Capturando…';
-    navigator.geolocation.getCurrentPosition(
-      p=>{ this._gps={lat:p.coords.latitude, lng:p.coords.longitude};
-           txt.innerHTML='📍 '+this._gps.lat.toFixed(5)+', '+this._gps.lng.toFixed(5); },
-      ()=>{ txt.textContent='No se pudo obtener ubicación'; },
-      {enableHighAccuracy:true, timeout:8000}
-    );
-  },
-  /* --- folio con prefijo por cobrador (evita duplicados offline) --- */
-  nextFolio(){
-    const seq = DB.data.meta.folioSeq;
-    const key = this.user.prefijo;
-    seq[key] = (seq[key]||0)+1;
-    const n = String(seq[key]).padStart(5,'0');
-    return `${key}-${new Date().getFullYear()}-${n}`;
-  },
-  savePago(){
-    const importe = parseFloat(document.getElementById('pImporte').value);
-    if(!importe || importe<=0){ this.toast('Captura un importe válido'); return; }
-    if(!this.sig.has){ this.toast('Falta la firma del cobrador'); return; }
-    const c = this.currentClient;
-    const pago = {
-      folio: this.nextFolio(),
-      clienteId: c.id, clienteNombre: c.nombre, poliza: c.poliza,
-      fecha: new Date().toISOString(),
-      importe,
-      metodo: document.getElementById('pMetodo').value,
-      observaciones: document.getElementById('pObs').value.trim(),
-      proxVenc: document.getElementById('pProxVenc').value,
-      firma: document.getElementById('sigCanvas').toDataURL('image/png'),
-      lat: this._gps?.lat||null, lng: this._gps?.lng||null,
-      cobradorId: this.user.id, cobradorNombre: this.user.nombre,
-      estatus: 'pendiente', creadoEn: Date.now()
+
+  guardarCaptura(forzar){
+    this.capLeer();
+    const c = this.cap;
+    const v = this.validarRecibo(c);
+    if(v.nivel==='err'){ this.toast('Revisa el número de recibo'); return; }
+    if(c.modo==='nolistado' && !c.poliza){ this.toast('Escribe el número de póliza'); return; }
+    const abono = Number(c.abono)||0;
+    if(c.estatus==='Cobrado'){
+      if(abono<=0){ this.toast('Escribe el abono'); return; }
+      if(!U.fechaDeDmy(c.fechaRecibo)){ this.toast('Escribe la fecha del recibo'); return; }
+      if(U.fechaDeDmy(c.fechaRecibo) > new Date()){ this.toast('La fecha del recibo no puede ser futura'); return; }
+    }
+    const tel = c.telefono ? U.tel10(c.telefono) : '';
+    if(c.telefono && !tel){ this.toast('El celular debe tener 10 dígitos'); return; }
+
+    /* confirmaciones (solo la primera vez) */
+    if(!forzar){
+      const avisos = [];
+      if(v.nivel==='warn') avisos.push(v.msg);
+      if(c.estatus==='Cobrado' && c.saldo && abono > c.saldo+1) avisos.push('El abono ('+U.money(abono)+') es mayor que el saldo ('+U.money(c.saldo)+').');
+      const fuera = c.poliza && !this.porId[c.poliza];
+      if(fuera && c.modo!=='cancelado') avisos.push('La póliza <b>'+U.esc(c.poliza)+'</b> no está en tu cartera. Oficina lo verá como <b>fuera de cartera</b>.');
+      if(avisos.length){
+        this.modal('¿Guardar de todos modos?', avisos.map(a=>'<p class="muted">'+a+'</p>').join('')+
+          '<button class="btn green" onclick="App.closeModal();App.guardarCaptura(true)">Sí, guardar</button>'+
+          '<button class="btn ghost" style="margin-top:10px" onclick="App.closeModal()">Corregir</button>');
+        return;
+      }
+    }
+
+    const p = this.porId[c.poliza];
+    const m = {
+      id: U.uid(),
+      ts: Date.now(),
+      estatus: c.estatus,
+      poliza: c.poliza || '',
+      cliente: c.cliente || (p? p.Cliente : ''),
+      empresa: c.empresa || (p? p.Empresa : ''),
+      abono: c.estatus==='Cobrado' ? abono : 0,
+      fecha: c.estatus==='Cancelado' ? U.hoyTxt() : c.fechaRecibo,
+      recibo: v.recibo || c.recibo,
+      motivo: c.estatus==='Cancelado' ? c.motivo : '',
+      fueraCartera: !!(c.poliza && !p),
+      fueraBlock: !!v.fueraBlock,
+      telefono: tel,
+      lat: this._gps? this._gps.lat : '',
+      lng: this._gps? this._gps.lng : '',
+      obs: c.obs || '',
+      capturado: U.ahoraTxt(),
+      saldoAntes: p? Number(p.Saldo)||0 : '',
+      enviado: false,
+      oficina: 'Por recibir',
+      entregaDe: c.entregaDe || ''
     };
-    DB.data.pagos.unshift(pago);
-    /* actualiza saldo y vencimiento del cliente localmente */
-    c.saldo = Math.max(0, c.saldo - importe);
-    c.proxVenc = pago.proxVenc;
+    DB.d.movs.push(m);
     DB.save();
-    this.bitacora(`Pago ${pago.folio} ${U.money(importe)} a ${c.nombre}`);
-    this.lastPago = pago;
+    if(navigator.onLine) this.sync(false);
+    if(m.estatus==='Cobrado'){
+      this.ultimo = m;
+      this.go('ticket');
+      this.renderTicket();
+    } else {
+      this.toast(m.estatus==='Pendiente' ? 'Recibo guardado como pendiente' : 'Recibo cancelado guardado');
+      this.pestana = 'recibos';
+      this.go('home');
+    }
+  },
+
+  /* ---------- Comprobante (copia digital) ---------- */
+  empresaInfo(emp){
+    const cfg = DB.d.config||{};
+    if(emp==='JUDA') return {nombre:cfg.NOMBRE_JUDA||'MUTUALIDAD JUDA', tel:cfg.TEL_JUDA||''};
+    if(emp==='ARCA') return {nombre:cfg.NOMBRE_ARCA||'ARCA', tel:cfg.TEL_MUTUCLUB||''};
+    return {nombre:cfg.NOMBRE_MUTUCLUB||'MUTUCLUB ARTS NOVA', tel:cfg.TEL_MUTUCLUB||''};
+  },
+  verComprobante(id){
+    const m = DB.d.movs.find(x=>x.id===id);
+    if(!m) return;
+    this.ultimo = m;
     this.go('ticket');
     this.renderTicket();
-    /* intento de sync inmediato si hay red */
-    if(navigator.onLine) this.sync();
   },
-
-  /* ---------- Ticket ---------- */
+  saldoDespues(m){
+    if(m.saldoAntes==='' || m.saldoAntes==null) return null;
+    return Math.max(0, Number(m.saldoAntes) - Number(m.abono||0));
+  },
   renderTicket(){
-    const p = this.lastPago, e = DB.data.empresa, c = this.currentClient;
-    const box = document.getElementById('ticketBox');
-    box.innerHTML = `
-      <div class="ticket" id="ticketRender">
-        <div class="center b">${e.nombre}</div>
-        <div class="center" style="font-size:11px">${e.direccion}<br>Tel. ${e.tels} · RFC ${e.rfc}</div>
+    const m = this.ultimo, e = this.empresaInfo(m.empresa), cfg = DB.d.config||{};
+    const est = document.getElementById('tkEstado');
+    est.textContent = m.oficina==='Recibido' ? 'Recibido en oficina' : (m.enviado ? 'Enviado' : 'Por enviar');
+    est.className = 'pill dot '+(m.oficina==='Recibido'?'valid':(m.enviado?'sync':'pend'));
+    const sd = this.saldoDespues(m);
+    document.getElementById('ticketBox').innerHTML = `
+      <div class="ticket">
+        <div class="center b">${U.esc(e.nombre)}</div>
+        ${e.tel?`<div class="center" style="font-size:11px">Tel. ${U.esc(e.tel)}</div>`:''}
         <hr>
-        <div class="center b">COMPROBANTE DE PAGO</div>
-        <div class="center">Folio: ${p.folio}</div>
+        <div class="center b">COPIA DIGITAL DE RECIBO</div>
+        <div class="center" style="font-size:16px" class="b"><b>Recibo No. ${U.esc(m.recibo)}</b></div>
         <hr>
-        <div class="lineit"><span>Fecha:</span><span>${U.fechaHora(p.fecha)}</span></div>
-        <div class="lineit"><span>Cliente:</span><span>${c.nombre}</span></div>
-        <div class="lineit"><span>Póliza:</span><span>${p.poliza}</span></div>
-        <div class="lineit"><span>Método:</span><span>${p.metodo}</span></div>
+        <div class="lineit"><span>Fecha:</span><span>${U.esc(m.fecha)}</span></div>
+        <div class="lineit"><span>Cliente:</span><span style="text-align:right">${U.esc(m.cliente)}</span></div>
+        <div class="lineit"><span>Póliza:</span><span>${U.esc(m.poliza)}</span></div>
         <hr>
-        <div class="lineit b" style="font-size:15px"><span>PAGADO:</span><span>${U.money(p.importe)}</span></div>
-        <div class="lineit"><span>Saldo restante:</span><span>${U.money(c.saldo)}</span></div>
-        <div class="lineit"><span>Próx. venc.:</span><span>${U.fechaCorta(p.proxVenc)}</span></div>
-        ${p.observaciones?'<div style="margin-top:4px">Obs: '+p.observaciones+'</div>':''}
+        <div class="lineit b" style="font-size:15px"><span>PAGÓ:</span><span>${U.money(m.abono)}</span></div>
+        ${sd!==null?`<div class="lineit"><span>Saldo aprox.:</span><span>${U.money(sd)}</span></div>`:''}
         <div class="qr" id="ticketQR"></div>
-        <div class="center" style="font-size:11px">Atendió: ${p.cobradorNombre}</div>
+        <div class="center" style="font-size:11px">Cobrador: ${U.esc(DB.d.sesion.cobrador)}</div>
         <hr>
-        <div class="center" style="font-size:11px">${e.mensaje}</div>
-        <div class="center" style="font-size:10px;color:#888;margin-top:6px">${e.aviso}</div>
+        <div class="center" style="font-size:11px">${U.esc(cfg.MENSAJE||'Gracias por su pago.')}</div>
+        <div class="center" style="font-size:10px;color:#888;margin-top:6px">El recibo físico No. ${U.esc(m.recibo)} es el comprobante oficial. Saldo sujeto a validación en oficina.</div>
       </div>`;
-    /* QR con datos de verificación */
-    const qrData = `MUTUCLUB|${p.folio}|${p.importe}|${p.fecha}`;
-    document.getElementById('ticketQR').innerHTML='';
-    new QRCode(document.getElementById('ticketQR'), {text:qrData, width:96, height:96, correctLevel:QRCode.CorrectLevel.M});
+    try{
+      new QRCode(document.getElementById('ticketQR'), {text:'RECIBO|'+m.recibo+'|'+m.poliza+'|'+m.abono+'|'+m.fecha, width:90, height:90, correctLevel:QRCode.CorrectLevel.M});
+    }catch(err){}
   },
-
-  /* ---------- PDF (jsPDF) ---------- */
   buildPDF(){
-    const p=this.lastPago, e=DB.data.empresa, c=this.currentClient;
+    const m=this.ultimo, e=this.empresaInfo(m.empresa), cfg=DB.d.config||{};
     const { jsPDF } = window.jspdf;
-    /* ticket angosto tipo 80mm */
-    const doc = new jsPDF({unit:'mm', format:[80,150]});
+    const doc = new jsPDF({unit:'mm', format:[80,140]});
     let y=10; const cx=40;
-    const center=(t,size,bold)=>{ doc.setFont('courier',bold?'bold':'normal'); doc.setFontSize(size); doc.text(t,cx,y,{align:'center'}); y+=size*0.42+1.5; };
-    const line=(l,r)=>{ doc.setFont('courier','normal'); doc.setFontSize(9); doc.text(l,6,y); doc.text(r,74,y,{align:'right'}); y+=4.6; };
-    const sep=()=>{ doc.setLineDashPattern([0.6,0.6],0); doc.line(6,y,74,y); y+=3.5; };
-    center(e.nombre,11,true);
-    center(e.direccion,8); center('Tel. '+e.tels+'  RFC '+e.rfc,8);
+    const center=(t,size,bold)=>{ doc.setFont('helvetica',bold?'bold':'normal'); doc.setFontSize(size); const l=doc.splitTextToSize(String(t),70); doc.text(l,cx,y,{align:'center'}); y+=l.length*(size*0.42+1.2); };
+    const line=(l,r)=>{ doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.text(l,6,y); doc.text(String(r),74,y,{align:'right'}); y+=4.8; };
+    const sep=()=>{ doc.setLineDashPattern([0.6,0.6],0); doc.line(6,y,74,y); y+=4; };
+    center(e.nombre,11,true); if(e.tel) center('Tel. '+e.tel,8);
     y+=1; sep();
-    center('COMPROBANTE DE PAGO',10,true); center('Folio: '+p.folio,9); sep();
-    line('Fecha:',U.fechaHora(p.fecha));
-    line('Cliente:', c.nombre.length>22?c.nombre.slice(0,22):c.nombre);
-    line('Poliza:',p.poliza); line('Metodo:',p.metodo); sep();
-    doc.setFont('courier','bold'); doc.setFontSize(12);
-    doc.text('PAGADO:',6,y); doc.text(U.money(p.importe),74,y,{align:'right'}); y+=6;
-    line('Saldo restante:',U.money(c.saldo));
-    line('Prox. venc.:',U.fechaCorta(p.proxVenc));
-    /* QR como imagen */
-    const qrCanvas = document.querySelector('#ticketQR canvas');
-    if(qrCanvas){ y+=2; doc.addImage(qrCanvas.toDataURL('image/png'),'PNG',cx-12,y,24,24); y+=27; }
-    /* firma */
-    if(p.firma){ doc.addImage(p.firma,'PNG',cx-18,y,36,12); y+=12; }
-    center('Atendio: '+p.cobradorNombre,8); sep();
-    doc.setFontSize(8);
-    const msg = doc.splitTextToSize(e.mensaje,68); doc.text(msg,cx,y,{align:'center'}); y+=msg.length*3.4;
-    doc.setFontSize(7); doc.setTextColor(120);
-    const av = doc.splitTextToSize(e.aviso,68); doc.text(av,cx,y,{align:'center'});
+    center('COPIA DIGITAL DE RECIBO',10,true); center('Recibo No. '+m.recibo,12,true); sep();
+    line('Fecha:',m.fecha);
+    line('Cliente:', String(m.cliente||'').slice(0,30));
+    line('Póliza:',m.poliza); sep();
+    doc.setFont('helvetica','bold'); doc.setFontSize(12);
+    doc.text('PAGÓ:',6,y); doc.text(U.money(m.abono),74,y,{align:'right'}); y+=6;
+    const sd=this.saldoDespues(m); if(sd!==null) line('Saldo aprox.:',U.money(sd));
+    const qr = document.querySelector('#ticketQR canvas');
+    if(qr){ y+=1; doc.addImage(qr.toDataURL('image/png'),'PNG',cx-11,y,22,22); y+=25; }
+    center('Cobrador: '+DB.d.sesion.cobrador,8); sep();
+    center(cfg.MENSAJE||'Gracias por su pago.',8);
+    doc.setTextColor(120); center('El recibo físico No. '+m.recibo+' es el comprobante oficial. Saldo sujeto a validación en oficina.',7);
     return doc;
   },
   downloadPDF(){
-    const doc=this.buildPDF();
-    doc.save(`Comprobante_${this.lastPago.folio}.pdf`);
+    this.buildPDF().save('Recibo_'+this.ultimo.recibo+'.pdf');
     this.toast('PDF descargado');
   },
-
-  /* ---------- WhatsApp ---------- */
   async shareWhatsApp(){
-    const p=this.lastPago, c=this.currentClient;
-    const tel = ('52'+c.telefono.replace(/\D/g,'')).replace(/^5252/,'52');
-    const msg = `Buen día Sr(a). ${c.nombre}, adjuntamos su comprobante de pago `+
-                `(folio ${p.folio}) por ${U.money(p.importe)}. ${DB.data.empresa.mensaje}`;
-    /* Mejor opción: compartir el PDF real vía hoja de compartir (Android) */
+    const m=this.ultimo, e=this.empresaInfo(m.empresa), cfg=DB.d.config||{};
+    const tel = U.tel10(m.telefono);
+    const msg = `Hola ${m.cliente||''}, ${e.nombre} le envía la copia de su recibo No. ${m.recibo} `+
+                `por ${U.money(m.abono)} de la póliza ${m.poliza} (${m.fecha}). ${cfg.MENSAJE||''}`;
     try{
-      const doc=this.buildPDF();
-      const blob=doc.output('blob');
-      const file=new File([blob],`Comprobante_${p.folio}.pdf`,{type:'application/pdf'});
+      const file = new File([this.buildPDF().output('blob')], 'Recibo_'+m.recibo+'.pdf', {type:'application/pdf'});
       if(navigator.canShare && navigator.canShare({files:[file]})){
-        await navigator.share({files:[file], text:msg, title:'Comprobante de pago'});
+        await navigator.share({files:[file], text:msg, title:'Recibo '+m.recibo});
         return;
       }
-    }catch(e){ /* si cancela o no soporta, cae al link */ }
-    /* Fallback: abre WhatsApp con mensaje (sin adjunto automático) */
-    window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`,'_blank');
-    this.toast('WhatsApp abierto · adjunta el PDF descargado');
+    }catch(err){ if(err && err.name==='AbortError') return; }
+    window.open('https://wa.me/'+(tel?'52'+tel:'')+'?text='+encodeURIComponent(msg),'_blank');
   },
 
-  /* ---------- Impresión térmica ESC/POS (Web Bluetooth) ---------- */
+  /* ---------- Ticket térmico Bluetooth (opcional) ---------- */
   async printTicket(){
     if(!navigator.bluetooth){ this.toast('Este navegador no soporta Bluetooth (usa Chrome en Android)'); return; }
     try{
       this.toast('Buscando impresora…');
-      /* servicios comunes de impresoras térmicas BLE */
-      const device = await navigator.bluetooth.requestDevice({
-        acceptAllDevices:true,
-        optionalServices:[0xFF00,0x18F0,0xFFE0,'000018f0-0000-1000-8000-00805f9b34fb']
-      });
+      const device = await navigator.bluetooth.requestDevice({acceptAllDevices:true,
+        optionalServices:[0xFF00,0x18F0,0xFFE0,'000018f0-0000-1000-8000-00805f9b34fb','e7810a71-73ae-499d-8c15-faa9aef0c3f2']});
       const server = await device.gatt.connect();
-      const services = await server.getPrimaryServices();
       let ch=null;
-      for(const s of services){
-        const chs = await s.getCharacteristics();
-        ch = chs.find(x=>x.properties.write || x.properties.writeWithoutResponse);
+      for(const s of await server.getPrimaryServices()){
+        ch = (await s.getCharacteristics()).find(x=>x.properties.write||x.properties.writeWithoutResponse);
         if(ch) break;
       }
       if(!ch){ this.toast('No se encontró canal de impresión'); return; }
       const bytes = this.escpos();
-      /* enviar en bloques de 180 bytes */
-      for(let i=0;i<bytes.length;i+=180){
-        await ch.writeValue(bytes.slice(i,i+180));
-        await new Promise(r=>setTimeout(r,40));
-      }
-      this.toast('Ticket enviado a impresora');
-      this.bitacora('Impresión ticket '+this.lastPago.folio);
-    }catch(e){ this.toast('Impresión cancelada o sin impresora'); }
+      for(let i=0;i<bytes.length;i+=180){ await ch.writeValue(bytes.slice(i,i+180)); await new Promise(r=>setTimeout(r,40)); }
+      this.toast('Ticket enviado a la impresora');
+    }catch(err){ this.toast('Impresión cancelada o sin impresora'); }
   },
   escpos(){
-    const p=this.lastPago, e=DB.data.empresa, c=this.currentClient;
-    const enc=new TextEncoder();
-    const out=[];
-    const push=(arr)=>out.push(...arr);
-    const text=(t)=>push([...enc.encode(t)]);
+    const m=this.ultimo, e=this.empresaInfo(m.empresa);
+    const sinAc = t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'');
+    const out=[], push=a=>out.push(...a), text=t=>push([...new TextEncoder().encode(sinAc(t))]);
     const ESC=0x1B, GS=0x1D;
-    push([ESC,0x40]);                 /* init */
-    push([ESC,0x61,0x01]);            /* centrar */
+    const ln=(l,r)=>{ r=sinAc(r); const sp=Math.max(1,32-l.length-r.length); text(l+' '.repeat(sp)+r+'\n'); };
+    push([ESC,0x40,ESC,0x61,0x01]);
     push([ESC,0x21,0x30]); text(e.nombre+'\n'); push([ESC,0x21,0x00]);
-    text(e.direccion+'\nTel. '+e.tels+'\nRFC '+e.rfc+'\n');
+    if(e.tel) text('Tel. '+e.tel+'\n');
+    text('--------------------------------\nCOPIA DIGITAL DE RECIBO\nRecibo No. '+m.recibo+'\n--------------------------------\n');
+    push([ESC,0x61,0x00]);
+    ln('Fecha:',m.fecha); ln('Cliente:',String(m.cliente).slice(0,22)); ln('Poliza:',m.poliza);
     text('--------------------------------\n');
-    text('COMPROBANTE DE PAGO\nFolio: '+p.folio+'\n');
-    text('--------------------------------\n');
-    push([ESC,0x61,0x00]);            /* izquierda */
-    const ln=(l,r)=>{ const sp=Math.max(1,32-l.length-r.length); text(l+' '.repeat(sp)+r+'\n'); };
-    ln('Fecha:',U.fechaHora(p.fecha).slice(0,16));
-    ln('Cliente:', c.nombre.slice(0,22));
-    ln('Poliza:',p.poliza); ln('Metodo:',p.metodo);
-    text('--------------------------------\n');
-    push([ESC,0x21,0x20]); ln('PAGADO:',U.money(p.importe)); push([ESC,0x21,0x00]);
-    ln('Saldo:',U.money(c.saldo)); ln('Prox venc:',U.fechaCorta(p.proxVenc));
+    push([ESC,0x21,0x20]); ln('PAGO:',U.money(m.abono)); push([ESC,0x21,0x00]);
     text('--------------------------------\n');
     push([ESC,0x61,0x01]);
-    text('Atendio: '+p.cobradorNombre+'\n'+e.mensaje+'\n');
-    text('\n\n\n'); push([GS,0x56,0x00]); /* cortar */
+    text('Cobrador: '+DB.d.sesion.cobrador+'\nEl recibo fisico es el\ncomprobante oficial.\n\n\n');
+    push([GS,0x56,0x00]);
     return new Uint8Array(out);
   },
 
   /* ---------- Ajustes ---------- */
-  openSettings(){ this.go('settings'); },
   renderSettings(){
-    const e=DB.data.empresa;
-    const isAdmin = this.user.rol==='admin';
+    const s = DB.d.sesion||{};
     document.getElementById('settingsBody').innerHTML = `
-      <div class="sectiontitle">Datos de la empresa (ticket)</div>
       <div class="card pad">
-        ${['nombre','direccion','tels','rfc','mensaje','aviso'].map(k=>`
-          <div class="field"><label>${k}</label>
-          <input id="set_${k}" value="${(e[k]||'').replace(/"/g,'&quot;')}"></div>`).join('')}
-        <button class="btn" onclick="App.saveEmpresa()">Guardar datos</button>
+        <div class="kv"><span>Cobrador</span><b>${U.esc(s.cobrador||'')}</b></div>
+        <div class="kv"><span>Usuario</span><b>${U.esc(s.usuario||'')}</b></div>
+        <div class="kv"><span>Pólizas en cartera</span><b>${this.polizas.length}</b></div>
+        <div class="kv"><span>Recibos disponibles en tus blocks</span><b>${(DB.d.folios||[]).length}</b></div>
+        <div class="kv"><span>Cobros sin enviar</span><b>${Sync.porEnviar().length}</b></div>
+        <div class="kv"><span>Datos de oficina</span><b>${U.esc(DB.d.actualizado||'—')}</b></div>
+        <div class="kv"><span>Última actualización</span><b>${U.esc(DB.d.ultimaSync||'—')}</b></div>
+        <div class="kv"><span>Conexión</span><b>${navigator.onLine?'Con señal':'Sin señal'}</b></div>
       </div>
+      <button class="btn ghost" style="margin-top:14px" onclick="App.verBlocks()">Ver mis recibos disponibles</button>
+      <button class="btn ghost" style="margin-top:10px;color:var(--rojo)" onclick="App.logout()">Cerrar sesión</button>
+      <div class="ver">Versión ${VERSION_APP}</div>`;
+  },
+  verBlocks(){
+    const f = (DB.d.folios||[]).slice().sort((a,b)=>a[0].localeCompare(b[0])||(+a[1])-(+b[1]));
+    const usados = new Set(DB.d.movs.map(m=>m.recibo));
+    const libres = f.map(x=>(x[0]==='JUDA'?'J':'')+x[1]).filter(t=>!usados.has(t));
+    this.modal('Recibos disponibles ('+libres.length+')', libres.length?
+      '<div style="max-height:55vh;overflow:auto;font-family:monospace;font-size:14px;line-height:1.9">'+libres.join(' · ')+'</div>' :
+      '<p class="muted">Oficina no te tiene blocks registrados.</p>');
+  },
 
-      <div class="sectiontitle">Estado</div>
-      <div class="card pad">
-        <div class="kv"><span>Usuario</span><b>${this.user.nombre} (${this.user.rol})</b></div>
-        <div class="kv"><span>Prefijo de folio</span><b>${this.user.prefijo}</b></div>
-        <div class="kv"><span>Pagos pendientes</span><b>${Sync.pendientes().length}</b></div>
-        <div class="kv"><span>Conexión</span><b>${navigator.onLine?'En línea':'Sin conexión'}</b></div>
-      </div>
-
-      ${isAdmin?`<div class="sectiontitle">Administración</div>
-      <div class="card pad">
-        <button class="btn ghost" onclick="App.exportExcel()">⬇ Exportar pagos a Excel (Access)</button>
-        <button class="btn ghost" style="margin-top:10px" onclick="App.showBitacora()">Ver bitácora</button>
-        <button class="btn ghost" style="margin-top:10px;color:var(--rojo);border-color:#f0caca" onclick="App.confirmReset()">Reiniciar datos demo</button>
-      </div>`:''}
-    `;
-  },
-  saveEmpresa(){
-    ['nombre','direccion','tels','rfc','mensaje','aviso'].forEach(k=>{
-      DB.data.empresa[k]=document.getElementById('set_'+k).value;
-    });
-    DB.save(); this.toast('Datos guardados');
-  },
-  exportExcel(){
-    /* CSV con separador ; compatible con importación a Access/Excel */
-    const rows = DB.data.pagos.map(p=>[
-      p.folio,p.fecha,p.clienteNombre,p.poliza,p.importe,p.metodo,
-      p.proxVenc,p.estatus,p.cobradorNombre,p.lat||'',p.lng||'',(p.observaciones||'').replace(/[;\n]/g,' ')
-    ]);
-    const head=['Folio','Fecha','Cliente','Poliza','Importe','Metodo','ProxVenc','Estatus','Cobrador','Lat','Lng','Observaciones'];
-    const csv='\uFEFF'+[head,...rows].map(r=>r.join(';')).join('\n');
-    const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob); a.download='Pagos_para_Access.csv'; a.click();
-    this.toast('Exportado: '+rows.length+' pago(s)');
-  },
-  showBitacora(){
-    const items = DB.data.bitacora.slice(0,40).map(b=>
-      `<div class="payrow"><div><b style="font-weight:500;font-size:14px">${b.accion}</b><div class="pf">${b.usuario}</div></div><div class="pf">${U.fechaHora(b.fecha)}</div></div>`
-    ).join('') || '<div class="muted">Sin registros.</div>';
-    this.modal('Bitácora de movimientos', `<div style="max-height:60vh;overflow:auto">${items}</div>`);
-  },
-  confirmReset(){
-    this.modal('¿Reiniciar datos demo?',
-      '<p class="muted">Se borrarán pagos y clientes y se restaurará la demo. Esta acción no se puede deshacer.</p>'+
-      '<button class="btn" style="background:var(--rojo)" onclick="App.doReset()">Sí, reiniciar</button>'+
-      '<button class="btn ghost" style="margin-top:10px" onclick="App.closeModal()">Cancelar</button>');
-  },
-  doReset(){ DB.reset(); this.closeModal(); this.toast('Datos reiniciados'); this.go('home'); },
-
-  /* ---------- UI helpers ---------- */
+  /* ---------- Avisos ---------- */
   toast(msg){
     const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
-    clearTimeout(this._tt); this._tt=setTimeout(()=>t.classList.remove('show'),2400);
+    clearTimeout(this._tt); this._tt=setTimeout(()=>t.classList.remove('show'),2800);
   },
   modal(title, html){
     document.getElementById('modalRoot').innerHTML =
-      `<div class="modal" onclick="if(event.target===this)App.closeModal()">
-        <div class="sheet"><h3>${title}</h3>${html}</div>
-      </div>`;
+      `<div class="modal" onclick="if(event.target===this)App.closeModal()"><div class="sheet"><h3>${title}</h3>${html}</div></div>`;
   },
   closeModal(){ document.getElementById('modalRoot').innerHTML=''; }
 };
 
-/* Service worker para instalación / offline */
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=> navigator.serviceWorker.register('sw.js').catch(()=>{}));
 }
-
 App.init();
 </script>
 </body>
