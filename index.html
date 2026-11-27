@@ -707,7 +707,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
    ============================================================ */
 
 /* Pega aquí la URL /exec de la aplicación web de Apps Script */
-const API_URL = '1u19B04FkixJ3g8l0ht9TeZzbAOUAA5TmDUeZtoVeLq8';
+const API_URL = '';
 
 const VERSION_APP = 'access-1.0';
 const KEY = 'campo_access_v1';
@@ -727,7 +727,7 @@ const U = {
   uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); },
   esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); },
   norm(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/\s+/g,' ').trim(); },
-  tel10(s){ const d=String(s||'').split(/[\/,;]/)[0].replace(/\D/g,''); return d.length>=10? d.slice(-10) : ''; }
+  tel10(s){ const d=String(s||'').replace(/\D/g,''); return d.length>=10? d.slice(-10) : ''; }
 };
 
 /* Número de recibo: 'J349' -> {serie:'JUDA', num:349}; '89326' -> {serie:'MUT-ARCA', num:89326} */
